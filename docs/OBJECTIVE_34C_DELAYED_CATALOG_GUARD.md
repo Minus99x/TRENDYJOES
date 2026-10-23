@@ -1,0 +1,5 @@
+# Objective 34C — Late local draft catalog safety (offline)
+
+The editor now accepts optional read-only draft catalog snapshots without reapplying a deep link after the customer begins interacting with the Studio. Only an initially unknown, subsequently resolved product URL may be selected automatically, and only when the editor is still pristine, the initial product is unchanged, and no pointer/keyboard/input/change interaction occurred. Unknown/invalid URLs cannot force navigation. Draft catalog entries cannot overwrite concept manifests or inject prototype keys, and duplicate/flagged/malformed entries are rejected before they appear in the picker.
+
+Manual product switches warn before discarding layers, imported models, calibration or saved work, including concept color/size changes. Cancel restores the original product selector. Confirmed switches release previous local object URLs and artwork grants. This is a conservative local UI guard, not durable storage or authenticated user authorization. No Shopify writes, real customer data, checkout or deployment.

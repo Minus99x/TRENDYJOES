@@ -1,0 +1,5 @@
+.tj-local-data/
+.tj-local-data-test/
+node_modules/
+*.log
+*-PRIVATE-recovery.json

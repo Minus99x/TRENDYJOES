@@ -1,0 +1,21 @@
+/* Client-only demonstration: no backend controls, uploads, or customer storage. */
+#stage-3d{display:block}#stage-3d[hidden],#stage[hidden],#orbit-tools[hidden]{display:none!important}
+.panel select,.panel textarea{max-width:100%}.panel input[type=range]{width:100%}
+.panel button:disabled{opacity:.6;cursor:not-allowed}
+.panel button:focus-visible,.panel input:focus-visible,.panel select:focus-visible,.panel textarea:focus-visible{outline:3px solid #52697A;outline-offset:3px}
+/* Preserve vertical page scrolling on phones. Horizontal drags still orbit;
+   vertical gestures scroll and pointercancel releases any active drag. */
+#stage{display:block;max-height:620px;max-width:100%;touch-action:pan-y}
+#stage-3d{height:100%;width:100%;min-height:340px;touch-action:pan-y}
+.preview-summary-panel[hidden]{display:none!important}
+
+/* Objective 34K: visible keyboard/touch camera affordances and accessible focus. */
+#stage-3d:focus-visible{outline:4px solid #52697A;outline-offset:-5px}
+.camera-help{margin:0;padding:9px 16px;background:#FBF7EE;color:#4F4440;font-size:12px;line-height:1.55;border-bottom:1px solid #CEBFB0}
+.orbit-tools button{min-width:74px;min-height:44px}
+@media(max-width:700px){.orbit-tools{width:100%}.orbit-tools button{flex:1 1 80px;min-width:0}}
+.camera-help[hidden]{display:none!important}
+
+/* 34Q: descriptive text stays available to assistive technology, not visually. */
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+#text-entry[aria-invalid="true"]{border:2px solid #7A2A30;outline-offset:2px}

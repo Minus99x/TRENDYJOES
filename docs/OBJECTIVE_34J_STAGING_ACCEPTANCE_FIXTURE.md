@@ -1,0 +1,9 @@
+# Objective 34J — Embedded landmark repair and offline HTTP staging fixture
+
+**Offline only. NOT a Shopify Liquid compiler, CDN acceptance, staging installation, production approval, hosted auth, or checkout.** No Shopify requests or writes.
+
+The prior 34I candidate included a nested `<main>` within a storefront page that already has a main landmark. The 34J generated section converts the embedded workspace to a named group and wraps the demo header/footer in a named section, preventing duplicate page-level banner/main/contentinfo landmarks while preserving the original standalone demo and all static customization controls.
+
+The new `src/staging-offline-fixture.mjs` validates the complete generated candidate against the SHA-256 inventory before serving anything. It substitutes only the three known `asset_url` Liquid expressions, rejects all other Liquid, simulates a host page with its own main, and serves all 12 generated JS/CSS assets over an ephemeral loopback HTTP server with correct MIME types, a restrictive CSP, and GET-only routes. Tests traverse the full transitive ESM graph through actual HTTP responses, check namespaced labels and ARIA references, and reject missing/tampered assets, forged paths, injected Liquid, checkout and write requests. The HTTP server exists only inside tests and closes automatically.
+
+Reproduce with `npm run preview:staging:check`, `node --test tests/objective34j-staging-offline-fixture.test.mjs`, and `npm test` on Node 22.16.0. The existing editor, GLB import/calibration, saved drafts and local backend are not modified. Main Engineering must still compile and verify the candidate inside authorized UNPUBLISHED staging, including real CDN ESM behavior and keyboard/mobile browser acceptance. Published Horizon and production remain untouched.

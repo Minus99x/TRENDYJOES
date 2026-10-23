@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TrendyJoes | Universal Custom Design Studio — Offline Product Options Preview v0.32</title><link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./studio-editor-nudge.css"></head>
+<body>
+<div class="masthead"><div class="mark">TJ<span>STUDIO</span></div><div><span class="eyebrow">TRENDYJOESDIYANDMORE · DEVELOPMENT PREVIEW</span><h1>Ideas made <em>yours.</em></h1><p>A design playground for a universe of customizable goods.</p></div><div class="stamp">EST. 2026<br>PRINT / MAKE / CREATE</div></div>
+<div class="caution"><a href="/demo/start.html">← Choose another concept canvas</a> · <strong>Engineering preview only.</strong> Shapes and zones are conceptual, not calibrated production templates. A loopback-only draft service is available for local testing. No public storage, checkout, verified manufacturer 3D assets, or pricing is active. A rotatable 3D concept mesh is included for local evaluation.</div>
+<p id="entry-feedback" class="entry-feedback" role="status" aria-live="polite">Choose a product or follow a concept link from Design Works.</p>
+<main class="workspace">
+<aside class="panel" aria-label="Customization tools">
+  <div class="panel-head"><span>01</span><h2>Choose your canvas</h2></div>
+  <label for="product">Product family</label><select id="product"></select>
+  <label for="surface">Design surface</label><select id="surface"></select>
+  <label for="concept-color">Concept blank color</label><select id="concept-color"></select>
+  <div class="concept-color-chip"><span id="concept-swatch" aria-hidden="true"></span><span id="concept-color-note">Illustrative preview color only.</span></div>
+  <label for="concept-size">Concept size / format</label><select id="concept-size"></select>
+  <p class="fineprint">Colors and formats are illustrative, not verified blank SKUs, stock, Shopify variants, or dye/print proofs. Changing either option requires a new draft revision.</p>
+  <div class="model-import" aria-labelledby="asset-title">
+    <h3 id="asset-title">3D asset inspection <small>Local GLB import</small></h3>
+    <label for="model-file">Preview a product-specific GLB model</label>
+    <input type="file" id="model-file" accept=".glb,model/gltf-binary">
+    <button type="button" id="clear-model" class="secondary" disabled>Return to procedural concept</button>
+    <p id="model-import-summary" class="fineprint" role="status" aria-live="polite" aria-atomic="true">No model imported. GLB files are inspected locally, never uploaded or approved for manufacturing.</p>
+    <p id="uv-diagnostic-live" class="fineprint" role="status" aria-live="polite" aria-atomic="true">Import a local GLB to inspect UV preview coverage. No manufacturing approval is available.</p>
+  </div>
+  <div class="rule"></div><div class="panel-head"><span>02</span><h2>Personalize</h2></div>
+  <label for="text-entry">Your lettering</label><textarea id="text-entry" maxlength="200" rows="3" placeholder="Your words go here">MAKE IT YOURS</textarea>
+  <button type="button" class="primary" id="add-text">+ Add wording</button>
+  <label for="artwork" class="upload-label">Upload reference artwork (private local test storage)</label><input id="artwork" type="file" accept="image/png,image/jpeg,image/webp">
+  <p class="fineprint">PNG/JPG/WebP (5 MB maximum). A local-only server saves testing copies. They are NOT production files or stored on Shopify.</p>
+  <div class="rule"></div><div class="panel-head"><span>03</span><h2>Adjust layers</h2></div>
+  <label for="layers">Design element</label><select id="layers"><option value="">Choose a layer</option></select>
+  <label for="rotation">Rotate <output id="rotation-output">0°</output></label><input id="rotation" type="range" min="-180" max="180" step="1" value="0">
+  <label for="scale">Size <output id="scale-output">100%</output></label><input id="scale" type="range" min="30" max="200" value="100">
+  <button type="button" id="remove" class="secondary">Remove selected element</button>
+  <div class="surface-copy" role="group" aria-labelledby="surface-copy-title">
+    <h3 id="surface-copy-title">Duplicate to another surface · concept only</h3>
+    <label for="copy-target-surface">Target design surface</label><select id="copy-target-surface" disabled></select>
+    <label for="copy-placement">Position on target surface</label>
+    <select id="copy-placement" disabled>
+      <option value="preserve">Keep relative placement</option>
+      <option value="center">Center element in target zone</option>
+    </select>
+    <button type="button" id="copy-selected-surface" class="secondary" disabled>Duplicate selected element onto surface</button>
+    <p id="copy-surface-help" class="fineprint">Choose whether to keep relative placement or center the copy in the target zone. The original stays unchanged; not calibrated for printing or ordering.</p>
+  </div>
+  <div class="keyboard-position" role="group" aria-labelledby="nudge-title">
+    <h3 id="nudge-title">Position selected element</h3>
+    <p id="nudge-help" class="fineprint">In 2D mode, choose a layer on the current surface. Use these buttons or focus the 2D preview and press arrow keys to move 1% of the design zone; Shift + arrow moves 5%. Moves outside the zone are refused.</p>
+    <div class="nudge-grid">
+      <button type="button" id="nudge-up" data-nudge="up" class="secondary" aria-label="Move selected element up 1 percent" disabled>↑</button>
+      <button type="button" id="nudge-left" data-nudge="left" class="secondary" aria-label="Move selected element left 1 percent" disabled>←</button>
+      <button type="button" id="nudge-down" data-nudge="down" class="secondary" aria-label="Move selected element down 1 percent" disabled>↓</button>
+      <button type="button" id="nudge-right" data-nudge="right" class="secondary" aria-label="Move selected element right 1 percent" disabled>→</button>
+    </div>
+  </div>
+</aside>
+<section class="preview-panel" aria-label="Design preview">
+  <div class="preview-head"><div><span class="eyebrow">INTERACTIVE DESIGN & CONCEPT 3D</span><h2 id="product-heading">Product Preview</h2><span id="surface-badge" class="surface-badge">FRONT</span></div><label class="zoom-label" for="zoom">Preview zoom <input id="zoom" type="range" min="75" max="135" value="100"></label></div>
+  <div class="view-tools" aria-label="Select preview mode">
+  <div class="mode-buttons" role="group" aria-label="Preview mode"><button type="button" id="mode-3d" aria-pressed="true">Rotatable 3D concept</button><button type="button" id="mode-2d" aria-pressed="false">2D design editor</button></div>
+  <div class="orbit-tools" id="orbit-tools" role="group" aria-label="3D camera controls">
+    <button type="button" id="view-front">Front</button><button type="button" id="view-back">Back</button>
+    <button type="button" id="orbit-left" aria-label="Rotate left">↶</button><button type="button" id="orbit-right" aria-label="Rotate right">↷</button>
+    <button type="button" id="view-reset">Reset view</button>
+    <label for="orbit-zoom">3D zoom <input id="orbit-zoom" type="range" min="70" max="175" value="100"></label>
+  </div>
+</div>
+<p id="surface-edit-context" class="fineprint" role="status" aria-live="polite" aria-atomic="true">Choose a design surface to inspect its elements. Concept only.</p>
+<div class="stage-wrap"><svg id="stage" hidden viewBox="0 0 800 640" role="img" tabindex="0" aria-describedby="nudge-help" aria-label="2D product silhouette and selected design layer. Arrow keys move the selected element"></svg><canvas id="stage-3d" aria-label="Drag to rotate a conceptual three-dimensional product model" role="img"></canvas><div class="grid-label">STUDIO / DRAFT / NOT TO SCALE</div></div>
+  <div class="preview-footer"><span>3D: drag to rotate. Switch to 2D to position individual design elements.</span><span id="status" role="status">Select a product to begin.</span></div>
+</section>
+<aside class="panel panel-right"><div class="panel-head"><span>04</span><h2>Review project</h2></div><div class="order-chip">DESIGN PROOF · UNSUBMITTED</div><dl class="details"><dt>Product</dt><dd id="summary-product">—</dd><dt>Surface</dt><dd id="summary-surface">—</dd><dt>Concept color</dt><dd id="summary-color">—</dd><dt>Size / format</dt><dd id="summary-size">—</dd><dt>Layers</dt><dd id="summary-layers">0</dd><dt>Manufacturing</dt><dd>Pre-commissioning</dd><dt>Price</dt><dd>Not verified</dd><dt>3D model</dt><dd id="model-status">Procedural concept, uncalibrated</dd></dl><div class="review-alert">Before ordering, each actual product will require verified printable dimensions, manufacturing compatibility, artwork storage, product-specific model assets, and authoritative pricing.</div><div class="concept-evidence"><button type="button" id="download-concept-evidence" class="secondary">Download private redacted concept evidence</button><button type="button" id="download-concept-review" class="secondary">Download redacted model and print-zone review</button><p id="concept-review-status" role="status" aria-live="polite">No review exported. Model, measurement and UV coverage remain unverified.</p><p id="concept-evidence-status" role="status" aria-live="polite">Concept evidence contains no private artwork IDs, text content, order approval or payment data. Your draft remains local.</p></div><details class="calibration-tool"><summary>Physical print-area measurement worksheet</summary>
+  <p class="fineprint">Enter real measurements for the selected surface, with traceable evidence. Export remains DRAFT, never production-approved. Leave fields blank until measured.</p>
+  <label for="blank-sku">Exact blank SKU</label><input id="blank-sku" type="text" maxlength="80" placeholder="Verified supplier blank SKU">
+  <div class="measurement-grid"><div><label for="print-width-mm">Zone width (mm)</label><input id="print-width-mm" type="number" min="0.1" max="4000" step="0.1"></div><div><label for="print-height-mm">Zone height (mm)</label><input id="print-height-mm" type="number" min="0.1" max="4000" step="0.1"></div>
+  <div><label for="blank-width-mm">Blank width (mm)</label><input id="blank-width-mm" type="number" min="0.1" max="5000" step="0.1"></div><div><label for="blank-height-mm">Blank height (mm)</label><input id="blank-height-mm" type="number" min="0.1" max="5000" step="0.1"></div></div>
+  <label for="measurement-source">Measurement evidence reference</label><input id="measurement-source" placeholder="Actual source document / bench measurements">
+  <label for="technician">Measured by</label><input id="technician" placeholder="Operator / technician">
+  <label for="measurement-date">Date measured</label><input id="measurement-date" type="date">
+  <label for="fixture-reference">Equipment / fixture reference</label><input id="fixture-reference" placeholder="Fixture, setup and machine">
+  <button id="validate-calibration" type="button" class="secondary">Validate draft worksheet</button>
+  <p id="calibration-result" role="status" class="fineprint">No physical measurements recorded.</p>
+  <button id="export-calibration" class="secondary" type="button" disabled>Download unapproved worksheet</button>
+</details><button id="save-local" class="primary" type="button">Save private draft to local server</button>
+<div id="saved-project" class="local-project" hidden><span class="eyebrow">SAVED DEVELOPMENT DRAFT</span><p id="saved-reference"></p><button id="recovery-receipt" type="button" class="secondary">Download private recovery receipt</button><p class="fineprint">The recovery receipt contains secret access tokens; keep it private. No purchase is created.</p></div>
+<div id="shopify-bridge" class="local-project" hidden>
+ <span class="eyebrow">SHOPIFY DRAFT BRIDGE · LOCAL PREVIEW ONLY</span>
+ <label for="shopify-variant">Actual Shopify product variant (snapshot)</label><select id="shopify-variant"></select>
+ <button id="review-shopify" type="button" class="secondary" disabled>Check saved design binding</button>
+ <p id="shopify-binding-result" class="fineprint" role="status">Not verified. Checkout remains unavailable.</p>
+ <button id="review-cart" type="button" class="secondary" disabled>Review cart readiness · no purchase</button>
+ <p id="cart-readiness-result" class="fineprint" role="status" aria-live="polite">Save a draft, then inspect the remaining Shopify integration blockers. This does not add to cart.</p>
+</div>
+<section class="local-project multi-preview" aria-labelledby="multi-title">
+ <h3 id="multi-title">Review multiple saved designs · local only</h3>
+ <p class="fineprint">Add each saved revision from its own product preview. Private grants stay in this open tab only. You may export a non-authorizing 30-minute checklist; restoring requires separately reopening each PRIVATE owner receipt. Never share private receipts. This is not a cart.</p>
+ <button id="multi-add" type="button" class="secondary" disabled>Add this saved design to review list</button>
+ <ul id="multi-list" aria-label="Saved designs selected for local review"></ul>
+ <button id="multi-review" type="button" class="secondary" disabled>Recheck selected saved designs · no purchase</button>
+ <button id="multi-export" type="button" class="secondary" disabled>Export non-private review checklist</button>
+ <label for="multi-import">Resume an interrupted review checklist (JSON, no owner grants)</label>
+ <input id="multi-import" type="file" accept="application/json,.json">
+ <p id="multi-progress" class="fineprint" role="status" aria-live="polite">No imported recovery checklist.</p>
+ <ul id="multi-pending" aria-label="Pending private receipts required for checklist recovery"></ul>
+ <button id="multi-confirm" type="button" class="secondary" disabled>Confirm reopened private receipt for local review</button>
+ <button id="multi-cancel" type="button" class="secondary" disabled>Cancel receipt confirmation</button>
+ <button id="multi-clear" type="button" class="secondary" disabled>Forget review list and pending checklist</button>
+ <p id="multi-status" tabindex="-1" role="status" aria-live="polite" class="fineprint">Select at least two saved designs for an offline, non-purchasing review.</p>
+ <ol id="multi-results" aria-label="Offline multi-design review results"></ol>
+</section>
+<section class="local-project" aria-labelledby="session-recovery-title"><h3 id="session-recovery-title">Text-only tab recovery · optional</h3>
+<label class="session-opt-in" for="session-recovery-opt-in"><input id="session-recovery-opt-in" type="checkbox"> Keep text-only preview changes in this tab for up to 30 minutes</label>
+<p class="fineprint">Off by default. Session storage is not encrypted; do not enter sensitive wording. Artwork, imported 3D files, and measurement worksheets are never cached. No account or checkout.</p>
+<button id="session-recovery-restore" type="button" class="secondary" disabled>Restore this tab's preview</button>
+<button id="session-recovery-forget" type="button" class="secondary">Forget tab preview</button>
+<p id="session-recovery-status" role="status" aria-live="polite" class="fineprint">No automatic restoration. Choose to save or restore explicitly.</p></section>
+<label for="resume-project">Reopen a private recovery receipt</label><input id="resume-project" type="file" accept="application/json,.json">
+<button id="review-preview" class="primary" type="button">Review my design · preview only</button><p class="fineprint">Review a validated, non-purchasing design summary. No price, cart, checkout, or order.</p><button id="save-json" class="secondary" type="button">Export JSON preview only</button><button id="reset" type="button" class="secondary">Start over</button><button type="button" disabled class="disabled-checkout">Checkout unavailable</button><p class="fineprint">These procedural 3D concept meshes and UV maps are interactive visualization aids only. Imported GLB geometry and measurement worksheets remain UNVERIFIED. Physical production calibration and actual printer proofing are still required.</p></aside>
+</main>
+<section id="preview-summary-panel" class="preview-summary-panel" aria-labelledby="preview-summary-heading" hidden>
+ <p class="eyebrow">05 / CUSTOMER PREVIEW REVIEW · NOT AN ORDER</p>
+ <h2 id="preview-summary-heading" tabindex="-1">Your design summary</h2>
+ <p class="fineprint">Illustrative design preview only. No verified inventory, production dimensions, price, payment, cart, or checkout.</p>
+ <dl class="preview-summary-details">
+  <dt>Product</dt><dd id="review-product"></dd>
+  <dt>Current surface</dt><dd id="review-surface"></dd>
+  <dt>Concept color</dt><dd id="review-color"></dd>
+  <dt>Concept size / format</dt><dd id="review-size"></dd>
+  <dt>Designed surfaces</dt><dd id="review-surfaces"></dd>
+  <dt>Design elements</dt><dd id="review-layers"></dd>
+  <dt>Local draft status</dt><dd id="review-draft"></dd>
+  <dt>3D model status</dt><dd id="review-model"></dd>
+  <dt>Production and purchase</dt><dd id="review-blockers"></dd>
+ </dl>
+ <button id="review-edit" type="button" class="secondary">← Return to design editor</button>
+ <p class="review-no-purchase">NO PURCHASE, CART, PAYMENT, OR ORDER HAS BEEN CREATED.</p>
+</section><footer>TrendyJoesDIYandMore · Mid-Century Production Studio · Local-only prototype, no changes to your Shopify store</footer>
+<script type="module" src="./studio.mjs"></script></body></html>

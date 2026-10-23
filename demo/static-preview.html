@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<title>Design Works | Static Customization Preview</title><link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./static-preview.css"></head>
+<body><header class="masthead"><div class="mark">TJ<span>DESIGN WORKS</span></div><div><span class="eyebrow">TRENDYJOES · INTERACTIVE CONCEPT SHOWROOM</span><h1>Ideas made <em>yours.</em></h1><p>Explore a design. No account or purchase required.</p></div></header>
+<div class="caution" role="note"><strong>Demonstration only.</strong> Nothing is saved or uploaded. Your design disappears when you close or refresh this page. Colors, sizing, printable zones and 3D models are conceptual. No prices, orders or checkout.</div>
+<p id="entry-feedback" class="entry-feedback" role="status" aria-live="polite">Choose a concept to begin.</p>
+<main class="workspace">
+<aside class="panel"><div class="panel-head"><span>01</span><h2>Choose a canvas</h2></div>
+<label for="product">Product</label><select id="product"></select>
+<label for="surface">Design surface</label><select id="surface"></select>
+<label for="concept-color">Illustrative color</label><select id="concept-color"></select>
+<label for="concept-size">Illustrative size / format</label><select id="concept-size"></select>
+<p class="fineprint">Not actual inventory, manufacturer colors, blank sizes or Shopify variants.</p>
+<div class="rule"></div><div class="panel-head"><span>02</span><h2>Personalize</h2></div>
+<label for="text-entry">Your wording (up to 200 characters)</label><textarea id="text-entry" maxlength="200" rows="3" autocomplete="off" aria-describedby="text-help" placeholder="Your words here"></textarea><p id="text-help" class="fineprint">1–200 characters. Wording stays in this browser session only.</p>
+<button type="button" class="primary" id="add-text">Add wording to preview</button>
+<label for="layers">Select text layer</label><select id="layers"><option value="">Choose a layer</option></select>
+<label for="rotation">Rotate <output id="rotation-output">0°</output></label><input type="range" id="rotation" min="-180" max="180" value="0">
+<label for="scale">Size <output id="scale-output">100%</output></label><input type="range" id="scale" min="30" max="200" value="100">
+<button type="button" class="secondary" id="remove">Remove selected layer</button>
+<p class="fineprint">Artwork uploads, GLB imports, saved drafts, account recovery and manufacturing worksheets are intentionally unavailable in this static demonstration.</p></aside>
+<section class="preview-panel" aria-label="Concept design preview"><div class="preview-head"><div><span class="eyebrow">DESIGN WORKS · NON-PURCHASING PREVIEW</span><h2 id="product-heading">Product concept</h2><span id="surface-badge" class="surface-badge">FRONT</span></div></div>
+<div class="view-tools"><div class="mode-buttons" role="group" aria-label="Preview mode"><button type="button" id="mode-3d" aria-pressed="true">Rotatable 3D concept</button><button type="button" id="mode-2d" aria-pressed="false">2D design layout</button></div>
+<div id="orbit-tools" class="orbit-tools" role="group" aria-label="3D camera"><button type="button" id="orbit-left">Rotate left</button><button type="button" id="orbit-right">Rotate right</button><button type="button" id="zoom-in">Zoom in</button><button type="button" id="zoom-out">Zoom out</button><button type="button" id="view-reset">Reset camera</button></div></div>
+<p id="camera-help" class="camera-help">3D view: drag sideways to rotate. On touch screens, swipe vertically to scroll the page; use camera buttons to rotate or zoom. Keyboard: focus the model, use arrow keys to rotate, plus/minus to zoom, Home to reset.</p>
+<p id="concept-a11y-summary" class="visually-hidden">Concept status loading.</p>
+<div class="stage-wrap"><svg id="stage" hidden viewBox="0 0 800 640" role="img" aria-describedby="concept-a11y-summary" aria-label="Concept product silhouette with design zones"></svg><canvas id="stage-3d" role="group" tabindex="0" aria-describedby="camera-help concept-a11y-summary" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - Home" aria-label="Interactive three-dimensional concept model"></canvas><div class="grid-label">CONCEPT ONLY · NOT TO SCALE</div></div>
+<div class="preview-footer"><span>Conceptual 2D/3D previews are not production proofs.</span><span id="status" role="status" aria-live="polite">Ready.</span></div></section>
+<aside class="panel panel-right"><div class="panel-head"><span>03</span><h2>Review concept</h2></div><div class="order-chip">PREVIEW · NO PURCHASE</div>
+<dl class="details"><dt>Product</dt><dd id="summary-product">—</dd><dt>Surface</dt><dd id="summary-surface">—</dd><dt>Layers</dt><dd id="summary-layers">0</dd><dt>Storage</dt><dd>None · temporary</dd><dt>Price</dt><dd>Not available</dd><dt>Manufacturing</dt><dd>Not approved</dd></dl>
+<button type="button" class="primary" id="review-preview" aria-describedby="review-help" disabled>Review my concept</button><p id="review-help" class="fineprint" role="status" aria-live="polite">Add wording to enable concept review.</p><button type="button" class="secondary" id="reset">Clear design</button>
+<button type="button" disabled class="disabled-checkout">Checkout unavailable</button><p class="fineprint">No customer identity, design files, order data or payments are transmitted.</p></aside>
+</main>
+<section id="preview-summary-panel" class="preview-summary-panel" hidden aria-labelledby="preview-summary-heading"><p class="eyebrow">04 / DESIGN REVIEW · NOT AN ORDER</p><h2 id="preview-summary-heading" tabindex="-1">Your concept summary</h2><dl class="preview-summary-details"><dt>Product</dt><dd id="review-product"></dd><dt>Surface</dt><dd id="review-surface"></dd><dt>Color</dt><dd id="review-color"></dd><dt>Size / format</dt><dd id="review-size"></dd><dt>Design layers</dt><dd id="review-layers"></dd><dt>Manufacturing / checkout</dt><dd>Not approved or available</dd></dl><button id="review-edit" type="button">Continue editing</button><p class="review-no-purchase">NOT SAVED · NO PURCHASE OR ORDER CREATED.</p></section>
+<footer>TrendyJoes Design Works · Mid-century creative workshop · Client-only demonstration</footer>
+<script type="module" src="./static-preview.mjs"></script></body></html>

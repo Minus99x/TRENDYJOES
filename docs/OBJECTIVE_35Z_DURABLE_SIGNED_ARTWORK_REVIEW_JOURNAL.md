@@ -1,0 +1,25 @@
+# Objective 35Z — locally durable, externally pinned signed artwork review transcript
+
+**Scope:** offline-only, read-only artwork-review evidence admission. This journal never deletes, quarantines, repairs, approves manufacturing, authorizes checkout, accesses Shopify, or deploys anything.
+
+## Purpose and trust boundaries
+
+Objective 35Y issues Ed25519-signed review evidence bound to an HMAC ticket, a 35X image-content/reference pin, and a caller-provided unpredictable reviewer challenge. The same signed report can be replayed during its validity window if no durable record is kept. Objective 35Z adds a **separate opt-in, Linux-local, append-only acceptance transcript** with single-host cross-process serialization, durable replay detection, and a caller-retained hash-chain head. The local ledger is **not itself an independent witness**. An operator must copy the returned `{count,headDigest}` to an independently controlled location after each successful admission; retaining it only in the same journal directory does not protect against a full-directory rollback.
+
+The journal requires the actual local artwork root and a separate private journal directory. `createLocalArtworkReviewJournal({root,directory})` exposes `admit` and `inspect`. Start with `localArtworkReviewJournalGenesisHead()`. Each admission requires `{evidence,ticket,reviewKey,resolvePublicKey,expectedChallenge,expectedHead,now}`. The caller supplies the HMAC review key and trusted Ed25519 key resolver; neither private key nor review key is written to the ledger. The signer challenge MUST come from the reviewing session independently of the signed evidence. `admit` acquires a Linux `flock` and checks the exact externally supplied head before re-verifying the complete 35Y signed evidence and fresh 35W/35X artwork scan. The journal binds one immutable signed evidence object and its digest to each hash-chained record. It refuses reused evidence digests, ticket digests and challenges.
+
+`inspect({expectedHead,resolvePublicKey})` rechecks every canonical record, predecessor hash, Ed25519 signature, root binding and uniqueness inside the lock. Its historical signature check deliberately **does not** assert current artwork state, current ticket validity, reviewer-session freshness or trusted timestamps. Historical signatures may become unverifiable when trusted key material is removed or rotated; callers need an independently governed historical key-resolution policy. The operator-facing result reports `independentlyWitnessed:false`, `liveSnapshotVerified:false`, and all mutation/production/Shopify authority flags false.
+
+## Crash safety
+
+Only Linux with `O_NOFOLLOW`, directory `fsync` and `/usr/bin/flock` is supported. Journal directory must be owned by the running UID, private (`0700`), non-symlinked and distinct from the artwork root. Lock and records must be private regular files with matching inode checks; canonical UTF-8 JSON is enforced. Admission creates an exclusive `.pending.json`, writes and fsyncs it, syncs the directory, hard-links the record name, syncs the directory, unlinks pending, and syncs again. **Any crash or error that leaves `.pending.json` blocks every future admission and inspection.** It is never automatically removed, reconciled, or retried; an independent authorized incident-response process is required. A lost acknowledgment after a completed append is detected by the externally pinned head and replay sets. There is no guarantee against malicious kernel/root users, disk failure, power-loss dishonesty, or independent modifications outside the cooperative lock.
+
+## Executable verification
+
+`node --test tests/objective35z-durable-review-journal.test.mjs` covers signed admission, two-entry continuity, replay across evidence/ticket/challenge, stale local image rejection, expiry, forged signatures and authority, historical key rotation, symlinks, permissions, noncanonical bytes, record tampering, missing/reordered records, rollback against external pins, injected crash boundaries, **real independent-process SIGKILL at pending-only and linked-pending**, independent competing Node processes, and lost acknowledgment after commit. Existing 35U–35Y focused tests and complete disjoint regression batches are required before release.
+
+## Limitations and next gate
+
+No independent anchor publisher, independent witness, global monotonicity, trusted time, protected signing keys, hosted authentication, cross-host writer fence, safe quarantine, recovery authorization, production GLB/dimension approval, actual Shopify cart/checkout/order integration, or real device/hosted browser acceptance is provided. Even a verified transcript only proves that a caller-controlled local process accepted particular signed read-only evidence under a local snapshot at admission time. It does not prove the evidence was globally complete or that the snapshot remains unchanged.
+
+**Next 35AA:** independently observer-signed, externally pinned *portable* read-only ledger-head receipts and split-view/rollback reconciliation. Keep review authority strictly NONE; coordinate Main Engineering through Library handoff only.
