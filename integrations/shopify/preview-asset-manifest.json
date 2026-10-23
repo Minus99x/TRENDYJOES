@@ -1,0 +1,298 @@
+{
+  "schema": "TJ-OFFLINE-BROWSER-ASSET-INVENTORY-1",
+  "scope": "LOCAL_PREVIEW_ONLY",
+  "hostedPreviewReady": false,
+  "shopifyThemeInstalled": false,
+  "shopifyAccepted": false,
+  "checkoutEnabled": false,
+  "backendRequirement": "LOOPBACK_API_NOT_HOSTABLE_AS_THEME_ASSET",
+  "blockedHostedFeatures": [
+    "PRIVATE_DRAFT_SAVE",
+    "PRIVATE_ARTWORK_UPLOAD",
+    "AUTHENTICATED_REVISIONS",
+    "CATALOG_SNAPSHOT",
+    "CART_AND_CHECKOUT"
+  ],
+  "assets": [
+    {
+      "path": "demo/browser-acceptance.mjs",
+      "url": "/demo/browser-acceptance.mjs",
+      "contentType": "text/javascript",
+      "bytes": 5256,
+      "sha256": "6ce2c184d61ce611cb6c5d639a5be57451755a6d97c25a73e7305d4887c42d59"
+    },
+    {
+      "path": "demo/entry.css",
+      "url": "/demo/entry.css",
+      "contentType": "text/css",
+      "bytes": 2919,
+      "sha256": "8493a8cfcab0cdf9f84328a716d0d4eddf2d5ba36f6573105aeb59eded2979cc"
+    },
+    {
+      "path": "demo/index.html",
+      "url": "/demo/index.html",
+      "contentType": "text/html",
+      "bytes": 17487,
+      "sha256": "b0d923444f274e548439711cbd8e20ce696017bcc3c870f45c63944b6afa58ca"
+    },
+    {
+      "path": "demo/start.html",
+      "url": "/demo/start.html",
+      "contentType": "text/html",
+      "bytes": 3870,
+      "sha256": "c41b87138fc8dff511ba0d243e7da1039ec606c668919022b02b60ec860264a7"
+    },
+    {
+      "path": "demo/studio.css",
+      "url": "/demo/studio.css",
+      "contentType": "text/css",
+      "bytes": 11730,
+      "sha256": "45ee31ee1780e2b0ca03742707d32b806e22c5a38d9089e35b9d5cca72861348"
+    },
+    {
+      "path": "demo/studio.mjs",
+      "url": "/demo/studio.mjs",
+      "contentType": "text/javascript",
+      "bytes": 62989,
+      "sha256": "e24d42f791c2da6c58c69baa8ce6f6edb1c9b0e1cb7bf8f54a9fb4137946dce1"
+    },
+    {
+      "path": "src/calibration.mjs",
+      "url": "/src/calibration.mjs",
+      "contentType": "text/javascript",
+      "bytes": 6673,
+      "sha256": "c4ba2d924428ea36d7f387038e093667c91243ec92e65e237882140d1a3c5328"
+    },
+    {
+      "path": "src/catalog.mjs",
+      "url": "/src/catalog.mjs",
+      "contentType": "text/javascript",
+      "bytes": 5827,
+      "sha256": "5636072e6c079764dc437301257572f3ed89b35d01b53dad6bb0ddb2582c9e3d"
+    },
+    {
+      "path": "src/core.mjs",
+      "url": "/src/core.mjs",
+      "contentType": "text/javascript",
+      "bytes": 6218,
+      "sha256": "6ffd1e37daa6870ded4ef648fc3c36ad6716a372504134968c8cbcdfc98cc039"
+    },
+    {
+      "path": "src/geometry3d.mjs",
+      "url": "/src/geometry3d.mjs",
+      "contentType": "text/javascript",
+      "bytes": 9066,
+      "sha256": "cecdcb1560ab8990064aeb85dff71bde563c68a97677776b85e5548626ff2978"
+    },
+    {
+      "path": "src/model-assets.mjs",
+      "url": "/src/model-assets.mjs",
+      "contentType": "text/javascript",
+      "bytes": 10382,
+      "sha256": "82696349fe8b2c232458c22f9373976c6ac1bffdcf1fef26826f4bc25258b0e3"
+    },
+    {
+      "path": "src/preview-calibration-review.mjs",
+      "url": "/src/preview-calibration-review.mjs",
+      "contentType": "text/javascript",
+      "bytes": 3131,
+      "sha256": "9559fa0608587b730948d3f32ebf52b01ece4af9a5b7c0d5797a09fc33113b70"
+    },
+    {
+      "path": "src/preview-catalog-merge.mjs",
+      "url": "/src/preview-catalog-merge.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2176,
+      "sha256": "fa797cd189cc19d9af962c0d6c402b19f844c326018aea44f90eda6326525a61"
+    },
+    {
+      "path": "src/preview-concept-review-packet.mjs",
+      "url": "/src/preview-concept-review-packet.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2538,
+      "sha256": "d8543749daef6bfe8f40229c231c87a6fe44fc1ae5f7b9ba4b5da563a0a2b127"
+    },
+    {
+      "path": "src/preview-design-fingerprint.mjs",
+      "url": "/src/preview-design-fingerprint.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1337,
+      "sha256": "89815608f9e8be6e27fe6da7fcad16fb7d4178f571f38ca5c83087a5aab32dd6"
+    },
+    {
+      "path": "src/preview-design-summary.mjs",
+      "url": "/src/preview-design-summary.mjs",
+      "contentType": "text/javascript",
+      "bytes": 3391,
+      "sha256": "f6ed8b10da2bb96fb8d43b97745730130d43143f3fade55d176b3c03a78b5492"
+    },
+    {
+      "path": "src/preview-editor-async-gate.mjs",
+      "url": "/src/preview-editor-async-gate.mjs",
+      "contentType": "text/javascript",
+      "bytes": 3320,
+      "sha256": "9b07b4b5a8c6f6ff7436c7b4149379b5ffd7d71d909f980f767670e742828659"
+    },
+    {
+      "path": "src/preview-editor-state.mjs",
+      "url": "/src/preview-editor-state.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1530,
+      "sha256": "ed2851f1bc95608f25311314b8b02c01370686d257b936fb88f76a70eb4a6f66"
+    },
+    {
+      "path": "src/preview-entry.mjs",
+      "url": "/src/preview-entry.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1492,
+      "sha256": "2bf32fbcee1fbd5f4f6ea6a8d284f347b492d1f9c60a0b117f91144c5dd7f9ab"
+    },
+    {
+      "path": "src/preview-glb-file-read.mjs",
+      "url": "/src/preview-glb-file-read.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1594,
+      "sha256": "fb1d708c75d02ad89484649369a7337200099a4b507c9c3386c674fb66ed9ccf"
+    },
+    {
+      "path": "src/preview-keyboard-position.mjs",
+      "url": "/src/preview-keyboard-position.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1596,
+      "sha256": "0e69ac851247fe58c0d3fffb9de8900c913b3b0634523384ec083f8db3ad1db5"
+    },
+    {
+      "path": "src/preview-merchandise-a11y.mjs",
+      "url": "/src/preview-merchandise-a11y.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1019,
+      "sha256": "3f91c51cdc634d1798ad00b0d3020c7e1433abb10a8a0ce62fdbeee6f8994f7b"
+    },
+    {
+      "path": "src/preview-mode-policy.mjs",
+      "url": "/src/preview-mode-policy.mjs",
+      "contentType": "text/javascript",
+      "bytes": 972,
+      "sha256": "e6f999a7d09cd968c119bd39eae8e87c767ba639a70783320331d9ccef41fb86"
+    },
+    {
+      "path": "src/preview-model-import-lifecycle.mjs",
+      "url": "/src/preview-model-import-lifecycle.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1528,
+      "sha256": "30b1faccbd5ae0ecda1152e203c16d01d028c1677909faaca39946a66c132911"
+    },
+    {
+      "path": "src/preview-model-receipt.mjs",
+      "url": "/src/preview-model-receipt.mjs",
+      "contentType": "text/javascript",
+      "bytes": 4359,
+      "sha256": "4eff1f44a28a970443b2596d28eb29d83b61f1dbd47d9b69d7956f0911588e7b"
+    },
+    {
+      "path": "src/preview-multidesign-confirmation.mjs",
+      "url": "/src/preview-multidesign-confirmation.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2934,
+      "sha256": "d5d923c2899bdff5282244c458296df845fd4b261af14c1efd24f671ee44c091"
+    },
+    {
+      "path": "src/preview-multidesign-dom-focus.mjs",
+      "url": "/src/preview-multidesign-dom-focus.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1707,
+      "sha256": "c37e415333ba4dd8328c1b4fc34613519c676320f59a33b4a9497b35937145e9"
+    },
+    {
+      "path": "src/preview-multidesign-resume.mjs",
+      "url": "/src/preview-multidesign-resume.mjs",
+      "contentType": "text/javascript",
+      "bytes": 6307,
+      "sha256": "51adfcadc740ebfa7f09b06c0d47584229f0413efc0ebe578159e433f07ae8de"
+    },
+    {
+      "path": "src/preview-multidesign-review.mjs",
+      "url": "/src/preview-multidesign-review.mjs",
+      "contentType": "text/javascript",
+      "bytes": 7100,
+      "sha256": "9fc1686f31207e8ef9e106dceae5e66a7c5efdae6c01adfb51f3604afc315654"
+    },
+    {
+      "path": "src/preview-multidesign-ui-transition.mjs",
+      "url": "/src/preview-multidesign-ui-transition.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1262,
+      "sha256": "b3f1b51eeb349f8574207005ec11156f65184f2fc87e5c028b7d2a7807bf0b78"
+    },
+    {
+      "path": "src/preview-private-design-evidence.mjs",
+      "url": "/src/preview-private-design-evidence.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2215,
+      "sha256": "47f92c8fb27d55b8b538045517d4756356f88c0b7b165f42cbe72ed2887e481e"
+    },
+    {
+      "path": "src/preview-private-export-gate.mjs",
+      "url": "/src/preview-private-export-gate.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1921,
+      "sha256": "ecba2e03849f9524810082496e7de10165212485c3d6c7aeedaf358226ff95da"
+    },
+    {
+      "path": "src/preview-private-receipt-transaction.mjs",
+      "url": "/src/preview-private-receipt-transaction.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1918,
+      "sha256": "f5c295bcb5aa67b161daff2c377c55b2f56ba75ef8d2f520877b9401b880f7d8"
+    },
+    {
+      "path": "src/preview-product-options.mjs",
+      "url": "/src/preview-product-options.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1573,
+      "sha256": "3456affaa4cdee1fafc280c1e183a0e77e729d126d58052aeb947c702ccbc464"
+    },
+    {
+      "path": "src/preview-session-recovery.mjs",
+      "url": "/src/preview-session-recovery.mjs",
+      "contentType": "text/javascript",
+      "bytes": 4949,
+      "sha256": "e6a81f236c37ed8c15b120859b55780dfe92094a67d851eedc089b777d1f6a39"
+    },
+    {
+      "path": "src/preview-surface-copy.mjs",
+      "url": "/src/preview-surface-copy.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2230,
+      "sha256": "dab06951f0b673faed04c34f0ff5fd0d301246c504fb18bd4015fbc687ef8c7e"
+    },
+    {
+      "path": "src/preview-uv-footprint.mjs",
+      "url": "/src/preview-uv-footprint.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2132,
+      "sha256": "150f9f516808c19a3d7efe27cd685a1598f6ccd4f72ef709c6b7b376d4791618"
+    },
+    {
+      "path": "src/preview-uv-report.mjs",
+      "url": "/src/preview-uv-report.mjs",
+      "contentType": "text/javascript",
+      "bytes": 2336,
+      "sha256": "ee67092432e9bfd63b0d3c76487f728a4e0c309ad82c5e9821e9347bb1fc5517"
+    },
+    {
+      "path": "src/preview-uv-triangle.mjs",
+      "url": "/src/preview-uv-triangle.mjs",
+      "contentType": "text/javascript",
+      "bytes": 900,
+      "sha256": "8fdd76e21da762337d1e8a3262e25c9c8d2da07b9cba4bf2d3d28b0ee9d7e9e0"
+    },
+    {
+      "path": "src/viewer3d.mjs",
+      "url": "/src/viewer3d.mjs",
+      "contentType": "text/javascript",
+      "bytes": 11345,
+      "sha256": "0b07a60851baeb6e4ab769a2b1a91f24bf649d293a71411d8da6682c57cfbb6c"
+    }
+  ]
+}

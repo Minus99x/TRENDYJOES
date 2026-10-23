@@ -1,0 +1,50 @@
+{% comment %} Objective 34I: UNPUBLISHED staging candidate only; no sales, storage, checkout or auth. {% endcomment %}
+{{ 'tj34i-demo-studio.css' | asset_url | stylesheet_tag }}
+{{ 'tj34i-demo-static-preview.css' | asset_url | stylesheet_tag }}
+<section id="tj34i-root" data-tj-static34i aria-label="Design Works concept preview">
+<header class="masthead"><div class="mark">TJ<span>DESIGN WORKS</span></div><div><span class="eyebrow">TRENDYJOES · INTERACTIVE CONCEPT SHOWROOM</span><h2>Ideas made <em>yours.</em></h2><p>Explore a design. No account or purchase required.</p></div></header>
+<div class="caution" role="note"><strong>Demonstration only.</strong> Nothing is saved or uploaded. Your design disappears when you close or refresh this page. Colors, sizing, printable zones and 3D models are conceptual. No prices, orders or checkout.</div>
+<p id="tj34i-entry-feedback" class="entry-feedback" role="status" aria-live="polite">Choose a concept to begin.</p>
+<div class="workspace" role="group" aria-label="Customization workspace">
+<aside class="panel"><div class="panel-head"><span>01</span><h2>Choose a canvas</h2></div>
+<label for="tj34i-product">Product</label><select id="tj34i-product"></select>
+<label for="tj34i-surface">Design surface</label><select id="tj34i-surface"></select>
+<label for="tj34i-concept-color">Illustrative color</label><select id="tj34i-concept-color"></select>
+<label for="tj34i-concept-size">Illustrative size / format</label><select id="tj34i-concept-size"></select>
+<p class="fineprint">Not actual inventory, manufacturer colors, blank sizes or Shopify variants.</p>
+<div class="rule"></div><div class="panel-head"><span>02</span><h2>Personalize</h2></div>
+<label for="tj34i-text-entry">Your wording (up to 200 characters)</label><textarea id="tj34i-text-entry" maxlength="200" rows="3" autocomplete="off" aria-describedby="tj34i-text-help" placeholder="Your words here"></textarea><p id="tj34i-text-help" class="fineprint">1–200 characters. Wording stays in this browser session only.</p>
+<button type="button" class="primary" id="tj34i-add-text">Add wording to preview</button>
+<label for="tj34i-layers">Select text layer</label><select id="tj34i-layers"><option value="">Choose a layer</option></select>
+<label for="tj34i-rotation">Rotate <output id="tj34i-rotation-output">0°</output></label><input type="range" id="tj34i-rotation" min="-180" max="180" value="0">
+<label for="tj34i-scale">Size <output id="tj34i-scale-output">100%</output></label><input type="range" id="tj34i-scale" min="30" max="200" value="100">
+<button type="button" class="secondary" id="tj34i-remove">Remove selected layer</button>
+<p class="fineprint">Artwork uploads, GLB imports, saved drafts, account recovery and manufacturing worksheets are intentionally unavailable in this static demonstration.</p><p class="fineprint"><a href="#tj-try-studio">Need to preview your own artwork? Open our separate 2D artwork tryout below.</a></p></aside>
+<section class="preview-panel" aria-label="Concept design preview"><div class="preview-head"><div><span class="eyebrow">DESIGN WORKS · NON-PURCHASING PREVIEW</span><h2 id="tj34i-product-heading">Product concept</h2><span id="tj34i-surface-badge" class="surface-badge">FRONT</span></div></div>
+<div class="view-tools"><div class="mode-buttons" role="group" aria-label="Preview mode"><button type="button" id="tj34i-mode-3d" aria-pressed="true">Rotatable 3D concept</button><button type="button" id="tj34i-mode-2d" aria-pressed="false">2D design layout</button></div>
+<div id="tj34i-orbit-tools" class="orbit-tools" role="group" aria-label="3D camera"><button type="button" id="tj34i-orbit-left">Rotate left</button><button type="button" id="tj34i-orbit-right">Rotate right</button><button type="button" id="tj34i-zoom-in">Zoom in</button><button type="button" id="tj34i-zoom-out">Zoom out</button><button type="button" id="tj34i-view-reset">Reset camera</button></div></div>
+<p id="tj34i-camera-help" class="camera-help">3D view: drag sideways to rotate. On touch screens, swipe vertically to scroll the page; use camera buttons to rotate or zoom. Keyboard: focus the model, use arrow keys to rotate, plus/minus to zoom, Home to reset.</p>
+<p id="tj34i-concept-a11y-summary" class="visually-hidden">Concept status loading.</p>
+<div class="stage-wrap"><svg id="tj34i-stage" hidden viewBox="0 0 800 640" role="img" aria-describedby="tj34i-concept-a11y-summary" aria-label="Concept product silhouette with design zones"></svg><canvas id="tj34i-stage-3d" role="group" tabindex="0" aria-describedby="tj34i-camera-help tj34i-concept-a11y-summary" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - Home" aria-label="Interactive three-dimensional concept model"></canvas><div class="grid-label">CONCEPT ONLY · NOT TO SCALE</div></div>
+<div class="preview-footer"><span>Conceptual 2D/3D previews are not production proofs.</span><span id="tj34i-status" role="status" aria-live="polite">Ready.</span></div></section>
+<aside class="panel panel-right"><div class="panel-head"><span>03</span><h2>Review concept</h2></div><div class="order-chip">PREVIEW · NO PURCHASE</div>
+<dl class="details"><dt>Product</dt><dd id="tj34i-summary-product">—</dd><dt>Surface</dt><dd id="tj34i-summary-surface">—</dd><dt>Layers</dt><dd id="tj34i-summary-layers">0</dd><dt>Storage</dt><dd>None · temporary</dd><dt>Price</dt><dd>Not available</dd><dt>Manufacturing</dt><dd>Not approved</dd></dl>
+<button type="button" class="primary" id="tj34i-review-preview" aria-describedby="tj34i-review-help" disabled>Review my concept</button><p id="tj34i-review-help" class="fineprint" role="status" aria-live="polite">Add wording to enable concept review.</p><button type="button" class="secondary" id="tj34i-reset">Clear design</button>
+<button type="button" disabled class="disabled-checkout">Checkout unavailable</button><p class="fineprint">No customer identity, design files, order data or payments are transmitted.</p></aside>
+</div>
+<section id="tj34i-preview-summary-panel" class="preview-summary-panel" hidden aria-labelledby="tj34i-preview-summary-heading"><p class="eyebrow">04 / DESIGN REVIEW · NOT AN ORDER</p><h2 id="tj34i-preview-summary-heading" tabindex="-1">Your concept summary</h2><dl class="preview-summary-details"><dt>Product</dt><dd id="tj34i-review-product"></dd><dt>Surface</dt><dd id="tj34i-review-surface"></dd><dt>Color</dt><dd id="tj34i-review-color"></dd><dt>Size / format</dt><dd id="tj34i-review-size"></dd><dt>Design layers</dt><dd id="tj34i-review-layers"></dd><dt>Manufacturing / checkout</dt><dd>Not approved or available</dd></dl><button id="tj34i-review-edit" type="button">Continue editing</button><p class="review-no-purchase">NOT SAVED · NO PURCHASE OR ORDER CREATED.</p></section>
+<footer>TrendyJoes Design Works · Mid-century creative workshop · Client-only demonstration</footer>
+</section>
+<script type="module" src="{{ 'tj34i-demo-static-preview.js' | asset_url }}"></script>
+{% schema %}
+{
+  "name": "Design Works preview",
+  "limit": 1,
+  "settings": [],
+  "presets": [
+    {
+      "name": "Design Works preview"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,78 @@
+{
+  "schema": "TJ-STAGING-STATIC-PREVIEW-PACKAGE-1",
+  "scope": "TJ_STATIC_PREVIEW_STAGING_CANDIDATE_ONLY",
+  "sourceVersion": "0.30.139",
+  "hostedPreviewReady": false,
+  "shopifyThemeInstalled": false,
+  "shopifyAccepted": false,
+  "checkoutEnabled": false,
+  "customerStorageEnabled": false,
+  "requiresMainEngineeringAcceptance": true,
+  "entries": [
+    {
+      "path": "assets/tj34i-demo-static-preview.css",
+      "bytes": 1653,
+      "sha256": "6fef2d335106b67c225079765e0992b8840124d69946af5cdf208e3955f15078"
+    },
+    {
+      "path": "assets/tj34i-demo-static-preview.js",
+      "bytes": 16265,
+      "sha256": "09b21fcda8c347125b2d84be366e566473372cf3ed1158536200404e09c00e1f"
+    },
+    {
+      "path": "assets/tj34i-demo-studio.css",
+      "bytes": 12849,
+      "sha256": "9536a3ae63514d4d4c20c35eb31c1ed787cdeb65a550a5e411c01cd11402043d"
+    },
+    {
+      "path": "assets/tj34i-src-catalog.js",
+      "bytes": 3216,
+      "sha256": "46f37b989f1d015c02f1de1cdc03e759ab9e45d328293a92826d74f2c54a23fd"
+    },
+    {
+      "path": "assets/tj34i-src-core.js",
+      "bytes": 6218,
+      "sha256": "6ffd1e37daa6870ded4ef648fc3c36ad6716a372504134968c8cbcdfc98cc039"
+    },
+    {
+      "path": "assets/tj34i-src-geometry3d.js",
+      "bytes": 9066,
+      "sha256": "cecdcb1560ab8990064aeb85dff71bde563c68a97677776b85e5548626ff2978"
+    },
+    {
+      "path": "assets/tj34i-src-preview-design-summary.js",
+      "bytes": 3427,
+      "sha256": "921d70090d4ec8d93799fd5ca4cd284f00e28a3331664072c679faca259b9dab"
+    },
+    {
+      "path": "assets/tj34i-src-preview-editor-state.js",
+      "bytes": 1530,
+      "sha256": "ed2851f1bc95608f25311314b8b02c01370686d257b936fb88f76a70eb4a6f66"
+    },
+    {
+      "path": "assets/tj34i-src-preview-entry.js",
+      "bytes": 1501,
+      "sha256": "30ce50ad4b5193a9e6a27fba20019add642e1007d004da9b0e77b62830d2fc39"
+    },
+    {
+      "path": "assets/tj34i-src-preview-product-options.js",
+      "bytes": 1573,
+      "sha256": "3456affaa4cdee1fafc280c1e183a0e77e729d126d58052aeb947c702ccbc464"
+    },
+    {
+      "path": "assets/tj34i-src-static-preview-contract.js",
+      "bytes": 19180,
+      "sha256": "28816cd34a39a7a088768bc2bdc2ff08329d9ff00610633169ecccf11cb05768"
+    },
+    {
+      "path": "assets/tj34i-src-viewer3d.js",
+      "bytes": 11354,
+      "sha256": "5e555bdfb5f878310109a64e4d83e7dfe9e86e48e3383bc7db0b88ce8208a850"
+    },
+    {
+      "path": "sections/tj-static-preview-34i.liquid",
+      "bytes": 7006,
+      "sha256": "98bc3a154eff36d6a0687e1b1b8d1fee10ad723df004f16399e7e29914e8b793"
+    }
+  ]
+}

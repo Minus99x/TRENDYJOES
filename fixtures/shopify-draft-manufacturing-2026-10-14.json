@@ -1,0 +1,12 @@
+{
+ "source":"Read-only connected Shopify Admin product search; 2026-10-14; snapshot may become stale; NOT authoritative for checkout",
+ "shop":"gucgmp-bc.myshopify.com",
+ "products":[
+  {"id":"gid://shopify/Product/8876312789127","title":"[DRAFT TEMPLATE] Custom DTF Transfer","handle":"draft-template-custom-dtf-transfer","status":"DRAFT","productType":"Made to Order - DTF","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087520419975","title":"Base","sku":"MTO-DTF-1001","price":"0.00"}}]}},
+  {"id":"gid://shopify/Product/8876312821895","title":"[DRAFT TEMPLATE] Custom UV DTF Decal","handle":"draft-template-custom-uv-dtf-decal","status":"DRAFT","productType":"Made to Order - UV DTF","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087520452743","title":"Base","sku":"MTO-UVD-1001","price":"0.00"}}]}},
+  {"id":"gid://shopify/Product/8876312887431","title":"[DRAFT TEMPLATE] Custom 3D Printed Item","handle":"draft-template-custom-3d-printed-item","status":"DRAFT","productType":"Made to Order - 3D Printing","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087520518279","title":"Base","sku":"MTO-3DP-1001","price":"0.00"}}]}},
+  {"id":"gid://shopify/Product/8876312952967","title":"[DRAFT TEMPLATE] Ready-to-Ship 3D Printed Decor","handle":"draft-template-ready-to-ship-3d-printed-decor","status":"DRAFT","productType":"In Stock - 3D Printing","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087520583815","title":"Base","sku":"STK-3DP-1001","price":"0.00"}}]}},
+  {"id":"gid://shopify/Product/8876331171975","title":"[DRAFT TEMPLATE] Custom DTG Printed Apparel","handle":"draft-template-custom-dtg-printed-apparel","status":"DRAFT","productType":"Made to Order - DTG Apparel","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087568195719","title":"Base","sku":"MTO-DTG-1001","price":"0.00"}}]}},
+  {"id":"gid://shopify/Product/8876331237511","title":"[DRAFT TEMPLATE] Custom UV Printed Hard Goods","handle":"draft-template-custom-uv-printed-hard-goods","status":"DRAFT","productType":"Made to Order - UV Hard Goods","variants":{"edges":[{"node":{"id":"gid://shopify/ProductVariant/46087568228487","title":"Base","sku":"MTO-UVP-1001","price":"0.00"}}]}}
+ ]
+}

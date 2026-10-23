@@ -1,0 +1,110 @@
+{
+  "schema": "TJ-STATIC-CLIENT-ASSET-INVENTORY-1",
+  "scope": "EPHEMERAL_CLIENT_ONLY",
+  "hostedPreviewReady": false,
+  "shopifyThemeInstalled": false,
+  "shopifyAccepted": false,
+  "checkoutEnabled": false,
+  "backendRequirement": "NONE_CLIENT_ONLY",
+  "blockedHostedFeatures": [
+    "PRIVATE_DRAFT_SAVE",
+    "PRIVATE_ARTWORK_UPLOAD",
+    "MODEL_UPLOAD",
+    "AUTHENTICATED_REVISIONS",
+    "CUSTOMER_STORAGE",
+    "CART_AND_CHECKOUT"
+  ],
+  "assets": [
+    {
+      "path": "demo/static-preview.css",
+      "url": "/demo/static-preview.css",
+      "contentType": "text/css",
+      "bytes": 1712,
+      "sha256": "20f9a36858c22671785a9925e1bc835eefaaa19beab9cd34c011af838a3c155b"
+    },
+    {
+      "path": "demo/static-preview.html",
+      "url": "/demo/static-preview.html",
+      "contentType": "text/html",
+      "bytes": 6600,
+      "sha256": "370a3daeb7513376d78343c92182cafa7e768a71a2458caa9a7f57708d6d1682"
+    },
+    {
+      "path": "demo/static-preview.mjs",
+      "url": "/demo/static-preview.mjs",
+      "contentType": "text/javascript",
+      "bytes": 16806,
+      "sha256": "6518d7441576139737b6a5ecd41adcbc8d2ff896898a177590a2227b5fd1d4f8"
+    },
+    {
+      "path": "demo/studio.css",
+      "url": "/demo/studio.css",
+      "contentType": "text/css",
+      "bytes": 11730,
+      "sha256": "45ee31ee1780e2b0ca03742707d32b806e22c5a38d9089e35b9d5cca72861348"
+    },
+    {
+      "path": "src/catalog.mjs",
+      "url": "/src/catalog.mjs",
+      "contentType": "text/javascript",
+      "bytes": 5827,
+      "sha256": "5636072e6c079764dc437301257572f3ed89b35d01b53dad6bb0ddb2582c9e3d"
+    },
+    {
+      "path": "src/core.mjs",
+      "url": "/src/core.mjs",
+      "contentType": "text/javascript",
+      "bytes": 6218,
+      "sha256": "6ffd1e37daa6870ded4ef648fc3c36ad6716a372504134968c8cbcdfc98cc039"
+    },
+    {
+      "path": "src/geometry3d.mjs",
+      "url": "/src/geometry3d.mjs",
+      "contentType": "text/javascript",
+      "bytes": 9066,
+      "sha256": "cecdcb1560ab8990064aeb85dff71bde563c68a97677776b85e5548626ff2978"
+    },
+    {
+      "path": "src/preview-design-summary.mjs",
+      "url": "/src/preview-design-summary.mjs",
+      "contentType": "text/javascript",
+      "bytes": 3391,
+      "sha256": "f6ed8b10da2bb96fb8d43b97745730130d43143f3fade55d176b3c03a78b5492"
+    },
+    {
+      "path": "src/preview-editor-state.mjs",
+      "url": "/src/preview-editor-state.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1530,
+      "sha256": "ed2851f1bc95608f25311314b8b02c01370686d257b936fb88f76a70eb4a6f66"
+    },
+    {
+      "path": "src/preview-entry.mjs",
+      "url": "/src/preview-entry.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1492,
+      "sha256": "2bf32fbcee1fbd5f4f6ea6a8d284f347b492d1f9c60a0b117f91144c5dd7f9ab"
+    },
+    {
+      "path": "src/preview-product-options.mjs",
+      "url": "/src/preview-product-options.mjs",
+      "contentType": "text/javascript",
+      "bytes": 1573,
+      "sha256": "3456affaa4cdee1fafc280c1e183a0e77e729d126d58052aeb947c702ccbc464"
+    },
+    {
+      "path": "src/static-preview-contract.mjs",
+      "url": "/src/static-preview-contract.mjs",
+      "contentType": "text/javascript",
+      "bytes": 19356,
+      "sha256": "91cd3a169a4e2c66dbc776b169f860550a22c8093ba8b634efb595666bd1810d"
+    },
+    {
+      "path": "src/viewer3d.mjs",
+      "url": "/src/viewer3d.mjs",
+      "contentType": "text/javascript",
+      "bytes": 11345,
+      "sha256": "0b07a60851baeb6e4ab769a2b1a91f24bf649d293a71411d8da6682c57cfbb6c"
+    }
+  ]
+}

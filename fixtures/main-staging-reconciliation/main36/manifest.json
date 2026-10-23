@@ -1,0 +1,34 @@
+{
+  "objective": "36 - selective reconciliation of Night Watch 35B/35C",
+  "authority": "Unpublished Shopify staging only, no live Horizon or checkout modifications",
+  "shopifyTheme": "gid://shopify/OnlineStoreTheme/155831271559",
+  "originalMainRelease": "TRENDYJOES_MAIN_v0.35_STAGING_INTEGRATION.zip",
+  "nightSource": "trendyjoes-universal-studio-v0.30.99-objective35c.zip",
+  "nightSourceSha256": "dc51f84ad4d2d8b450e1ca570fb5df41779aecafa4c6ff839d1bd054e9c3f3e7",
+  "scope": "Selective 35B/35C guard: reconstructed preview transform bounds and product-discard protection, not a complete 35C bundle merge",
+  "files": {
+    "assets/tj34i-src-static-preview-contract.js": {
+      "oldMd5": "76b545275c37bf04167df500a900b479",
+      "deployedMd5": "6253961f653367d09c7bc53175e238a7",
+      "deployedSha256": "bbd201d1908ed4249ea01f2116082673f907b7b4bbcbb1705dba1c7c960c7324"
+    },
+    "assets/tj34i-demo-static-preview.js": {
+      "oldMd5": "01c2da6bc6766d5e1cd5be5f8c0f3653",
+      "deployedMd5": "813e4b6a070f2354291a9e93e654fe25",
+      "deployedSha256": "fdaf891a8cf85bcc4fe49dd2f9d05ce8bed0dad2a12c9295a57f3b748000aa03"
+    }
+  },
+  "tests": {
+    "local_targeted": "16/16 PASS, exit 0",
+    "upstream_night_35c_focused": "25/25 PASS, exit 0",
+    "upstream_night_preview_staging_check": "13 PASS",
+    "nativeShopifyBrowser": "NOT RUN",
+    "full_on_patched_main": "NOT RUN"
+  },
+  "siteStatus": {
+    "stagingRole": "UNPUBLISHED",
+    "liveRole": "MAIN",
+    "liveTheme": "Horizon"
+  },
+  "checkpoint": "Tool files__manage_library returned container_session_expired; this artifact remained in local container, not claimed saved to persistent Library."
+}

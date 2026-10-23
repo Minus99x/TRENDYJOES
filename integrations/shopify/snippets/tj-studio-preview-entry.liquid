@@ -1,0 +1,31 @@
+{% comment %}
+TrendyJoes Objective 34F offline staging-only integration adapter.
+Main Engineering must upload this snippet and its CSS to UNPUBLISHED staging
+and must pass preview_route_verified: true ONLY after /pages/design-works-preview
+actually hosts the working preview-only editor and passes native browser QA.
+Default is deliberately non-navigable; no live checkout, cart or product GIDs.
+Do not add to the published Horizon theme without separate authorization.
+{% endcomment %}
+{{ 'tj-studio-preview-entry.css' | asset_url | stylesheet_tag }}
+{% assign tj_preview_ready = false %}
+{% if preview_route_verified == true %}{% assign tj_preview_ready = true %}{% endif %}
+<section class="tj-preview-gateway" aria-labelledby="tj-preview-gateway-title">
+  <p class="tj-preview-eyebrow">TrendyJoes Design Works · Universal Custom Studio</p>
+  <h2 id="tj-preview-gateway-title">Choose a canvas to personalize</h2>
+  <p>Explore conceptual apparel, drinkware, accessories and home goods. No pricing, orders or checkout are available in this preview.</p>
+  <div class="tj-preview-grid">
+    {% assign tj_concept_ids = 'concept-crew-tee|concept-v-tee|concept-long-sleeve|concept-hoodie|concept-tumbler|concept-backpack|concept-rug|concept-sneaker' | split: '|' %}
+    {% assign tj_concept_labels = 'Crew-neck tee|V-neck tee|Long-sleeve shirt|Hoodie|Tumbler|Backpack|Rug' | split: '|' %}
+    {% for tj_id in tj_concept_ids %}
+      <div class="tj-preview-card">
+        <h3>{{ tj_concept_labels[forloop.index0] | escape }}</h3>
+        {% if tj_preview_ready %}
+          <a href="/pages/design-works-preview?product={{ tj_id | url_encode }}" aria-label="Preview customization for {{ tj_concept_labels[forloop.index0] | escape }}">Customize concept <span aria-hidden="true">→</span></a>
+        {% else %}
+          <span class="tj-preview-pending">Studio preview integration pending</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <p class="tj-preview-warning" role="note">Concept previews are not manufacturing-approved products. The Studio cannot accept purchases.</p>
+</section>

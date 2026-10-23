@@ -1,0 +1,108 @@
+{
+  "objective": "Main Objective 35",
+  "upstream": "Night Watch v0.30.85 Objective34O",
+  "scope": "UNPUBLISHED Shopify theme only",
+  "modifications": [
+    "HTML h1->h2 to preserve homepage single H1",
+    "linked existing local artwork preview as separately preserved capability",
+    "scoped added typography CSS"
+  ],
+  "files": {
+    "assets/tj34i-src-preview-product-options.js": {
+      "sha256": "3456affaa4cdee1fafc280c1e183a0e77e729d126d58052aeb947c702ccbc464",
+      "bytes": 1573
+    },
+    "assets/tj34i-src-preview-entry.js": {
+      "sha256": "30ce50ad4b5193a9e6a27fba20019add642e1007d004da9b0e77b62830d2fc39",
+      "bytes": 1501
+    },
+    "assets/tj34i-src-static-preview-contract.js": {
+      "sha256": "8f399a2c668bd9de6973b7616ffecd052a526fc322e48a95b90ef6870457fb70",
+      "bytes": 6912
+    },
+    "assets/tj34i-src-catalog.js": {
+      "sha256": "46f37b989f1d015c02f1de1cdc03e759ab9e45d328293a92826d74f2c54a23fd",
+      "bytes": 3216
+    },
+    "assets/tj34i-src-viewer3d.js": {
+      "sha256": "5e555bdfb5f878310109a64e4d83e7dfe9e86e48e3383bc7db0b88ce8208a850",
+      "bytes": 11354
+    },
+    "assets/tj34i-src-geometry3d.js": {
+      "sha256": "cecdcb1560ab8990064aeb85dff71bde563c68a97677776b85e5548626ff2978",
+      "bytes": 9066
+    },
+    "assets/tj34i-demo-static-preview.js": {
+      "sha256": "7fc0f684dce60066b3903a41d02fe1e634ccde8a92b22495e00140687e2a68d0",
+      "bytes": 11700
+    },
+    "assets/tj34i-src-core.js": {
+      "sha256": "6ffd1e37daa6870ded4ef648fc3c36ad6716a372504134968c8cbcdfc98cc039",
+      "bytes": 6218
+    },
+    "assets/tj34i-src-preview-design-summary.js": {
+      "sha256": "921d70090d4ec8d93799fd5ca4cd284f00e28a3331664072c679faca259b9dab",
+      "bytes": 3427
+    },
+    "assets/tj34i-src-preview-editor-state.js": {
+      "sha256": "ed2851f1bc95608f25311314b8b02c01370686d257b936fb88f76a70eb4a6f66",
+      "bytes": 1530
+    },
+    "assets/tj34i-demo-studio.css": {
+      "sha256": "fc69435db0f8bcd271527e4389db462901c5d1456117608aa91e2fd072b519bc",
+      "bytes": 11366
+    },
+    "assets/tj34i-demo-static-preview.css": {
+      "sha256": "d7d0278832aac552e762606e59a363695dc6fb6673e4396660f8cf1337ec3609",
+      "bytes": 1313
+    },
+    "sections/tj-static-preview-34i.liquid": {
+      "sha256": "cd645384885a3510e3943542148e224dfc80aedd7be99c8b7b893debe98353dd",
+      "bytes": 6571
+    }
+  },
+  "browserAcceptance": [
+    {
+      "width": 390,
+      "height": 844,
+      "errors": [],
+      "scrollWidth": 390,
+      "h1": 1,
+      "products": 7,
+      "canvas": 1,
+      "add_text": "PASS",
+      "2d3d": "PASS",
+      "review": "PASS",
+      "edit": "PASS",
+      "clear": "PASS"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "errors": [],
+      "scrollWidth": 768,
+      "h1": 1,
+      "products": 7,
+      "canvas": 1,
+      "add_text": "PASS",
+      "2d3d": "PASS",
+      "review": "PASS",
+      "edit": "PASS",
+      "clear": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "errors": [],
+      "scrollWidth": 1440,
+      "h1": 1,
+      "products": 7,
+      "canvas": 1,
+      "add_text": "PASS",
+      "2d3d": "PASS",
+      "review": "PASS",
+      "edit": "PASS",
+      "clear": "PASS"
+    }
+  ]
+}

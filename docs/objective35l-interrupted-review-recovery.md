@@ -1,0 +1,9 @@
+# Objective 35L — interrupted multi-design review recovery (offline only)
+
+The customer may explicitly export a **non-authorizing** JSON checklist of selected and unselected saved revisions. Its 30-minute expiry is checked on import and again during each recovery operation. The checklist is an untrusted reminder of the exact revision/product/variant bindings and does not authenticate anybody. It must never be treated as a cart, order, payment, manufacturing approval, private saved-design backup or authorization to buy.
+
+After an interruption, the customer imports that checklist and separately opens each saved design's PRIVATE recovery receipt using the existing local recovery input. That private receipt is sensitive because it contains a local bearer owner grant and may include private artwork grants. The receipt is not copied to the checklist, DOM, tab storage, session storage or the non-authorizing result. The local API checks the grant, reference, revision, product and variant; recovery compares both readiness digests, rejects stale/missing/forged/expired records and refuses selection changes while awaiting the API. A failed line remains pending and never silently upgrades to a newer saved revision. To recover a newly edited revision, create a new checklist explicitly.
+
+The editor remains an offline loopback prototype. There is no hosted customer login, production artwork storage, real catalog/price/inventory authority, Shopify cart/order creation, approved manufacturing profile or verified mobile browser interaction. Native browser acceptance, Main Engineering staging reconciliation and manufacturing approval remain outstanding. No Shopify reads or writes were performed for this objective.
+
+Tests: `node --test tests/objective35l-multidesign-review-recovery.test.mjs`, followed by full `npm test`, then local integrity checks. Private receipts should be protected like passwords; checklist files do not substitute for them.
