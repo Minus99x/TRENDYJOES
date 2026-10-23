@@ -1,0 +1,26 @@
+name: TrendyJoes Offline Studio CI
+on:
+  push:
+    branches: [dev/universal-studio-migration]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@v4
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check offline preview asset integrity
+        run: npm run preview:assets:check
+      - name: Check protected static preview asset integrity
+        run: npm run preview:static:assets:check
+      - name: Execute bounded Studio security and manufacturing regressions
+        run: node --test --test-concurrency=4 tests/objective35b*.test.mjs

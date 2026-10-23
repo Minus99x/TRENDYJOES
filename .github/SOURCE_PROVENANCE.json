@@ -1,0 +1,13 @@
+{
+  "project": "TrendyJoes Design Works / Universal Studio",
+  "source": "ChatGPT Library /TrendyJoes Night Watch/",
+  "sourceArchive": "trendyjoes-universal-studio-v0.30.172-objectives35bk-35bz.zip",
+  "archiveSha256": "7efe931bf9c26ea132fa8fc046950f253a6541957c9a8bb95a196a586b22fd02",
+  "sourceFileCount": 626,
+  "verifiedGitTreeSha1": "3adb200de5db14e100e6010ab90ad0da83fa07af",
+  "importedCommitSha": "f07a480139521d553d09c007dadba70d7a8b11bc",
+  "legacyBundlesLocation": "ChatGPT Library /TrendyJoes Night Watch/; original local Git bundles preserved there, not rebased or represented as GitHub commits.",
+  "protectedStagingCandidatesUnmodified": true,
+  "manualMain57AConflictsPending": 4,
+  "hostedShopifyMigrationAuthorized": false
+}
