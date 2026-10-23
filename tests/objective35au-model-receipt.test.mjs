@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {validateLocalModelInspection as validate} from '../src/preview-model-receipt.mjs';
+const p={surfaces:[{id:'front'},{id:'back'}]},sha='a'.repeat(64);
+const good=()=>({sha256:sha,byteLength:100,triangleCount:1,nodeCount:1,vertexCount:3,assetBoundsMeters:{min:[0,0,0],max:[1,1,0],extent:[1,1,0]},mappedSurfaces:['front'],missingSurfaces:['back'],approval:'UNVERIFIED_LOCAL_PREVIEW_ONLY',asset:{status:'IMPORTED_UNVERIFIED',modelId:`imported-${sha.slice(0,14)}`,sha256:sha,surfaceIds:['front'],triangles:[{a:[0,0,0],b:[1,0,0],c:[0,1,0],material:'fabric',side:'asset',surfaceId:'front',uv:[[0,0],[1,0],[0,1]]}]}});
+test('valid local preview receipt explicitly denies authorization',()=>{const o=validate(good(),p);assert.equal(o.manufacturingApproved,false);assert.equal(o.checkoutEnabled,false);assert.equal(o.status,'IMPORTED_UNVERIFIED');});
+test('forged approval, missing zones and duplicate zones denied',()=>{for(const mutation of [r=>r.approval='APPROVED',r=>r.asset.status='APPROVED',r=>r.mappedSurfaces=['front','front'],r=>r.missingSurfaces=[],r=>r.mappedSurfaces=['other'],r=>r.sha256='A'.repeat(64),r=>r.triangleCount=2,r=>r.byteLength=Infinity]){let r=good();mutation(r);assert.throws(()=>validate(r,p));}});

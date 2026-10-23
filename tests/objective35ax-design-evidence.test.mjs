@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {buildPrivateConceptDesignEvidence as build} from '../src/preview-private-design-evidence.mjs';import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';
+const p=PRODUCT_MANIFESTS[0],surfaceId=p.surfaces[0].id,options={colorId:null,sizeId:null};
+const layer={id:'L1',type:'artwork',surfaceId,x:.1,y:.2,width:.25,height:.2,rotationDeg:0,scaleFactor:1,artworkId:'art_private',grant:'never-export',ownerToken:'nope'};
+test('local packet redacts owner tokens and artwork identifiers',()=>{let r=build({product:p,surfaceId,previewSelection:options,layers:[layer],availableArtworkIds:['art_private']});let s=JSON.stringify(r);assert.equal(r.checkoutEnabled,false);assert.equal(r.privateContentIncluded,false);assert.doesNotMatch(s,/never-export|ownerToken|art_private|nope/);});
+test('rejects invalid zones and unavailable private art',()=>{assert.throws(()=>build({product:p,surfaceId,previewSelection:options,layers:[layer]}),/LOCAL_ARTWORK_UNAVAILABLE/);assert.throws(()=>build({product:p,surfaceId,layers:[{...layer,x:20}],previewSelection:options,availableArtworkIds:['art_private']}));});

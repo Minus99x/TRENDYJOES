@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {fingerprintConceptEvidence as digest} from '../src/preview-design-fingerprint.mjs';
+const p=()=>({schema:'TJ-LOCAL-CONCEPT-DESIGN-EVIDENCE-1',privateContentIncluded:false,checkoutEnabled:false,manufacturingApproved:false,value:'A'});
+test('SHA-256 stable for identical concept evidence, changes when data changes',async()=>{const a=await digest(p()),b=await digest(p()),c=await digest({...p(),value:'B'});assert.equal(a.digestSha256,b.digestSha256);assert.notEqual(a.digestSha256,c.digestSha256);assert.match(a.digestSha256,/^[0-9a-f]{64}$/);});
+test('cannot hash promoted checkout authority or bad digests',async()=>{await assert.rejects(digest({...p(),checkoutEnabled:true}));await assert.rejects(digest(p(),{digest:async()=>new ArrayBuffer(31)}));});

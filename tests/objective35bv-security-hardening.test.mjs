@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+
+import {estimateLayerPhysicalPlacement,createCalibrationWorksheet} from '../src/calibration.mjs';import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';
+const p=PRODUCT_MANIFESTS[0],l={surfaceId:'front',x:.2,y:.2,width:.2,height:.2};const draft=createCalibrationWorksheet(p,[{surfaceId:'front',widthMm:100,heightMm:100,blankWidthMm:150,blankHeightMm:150,processCode:'DTF-TEXTILE',fixtureReference:'Jig'}],{blankSku:'SKU',measuredBy:'Technician',sourceDocument:'Doc',measuredAt:'2026-10-01'});
+test('35BV estimator refuses forged physical units and malicious image DPI',()=>{assert.equal(estimateLayerPhysicalPlacement(draft,l,{sourceWidthPx:1200,sourceHeightPx:800}).ok,true);for(const pixels of [-1,1.5,Infinity,1e20,'900'])assert.equal(estimateLayerPhysicalPlacement(draft,l,{sourceWidthPx:pixels}).ok,false);const w=structuredClone(draft);w.zones[0].printableWidthMm=1e200;assert.equal(estimateLayerPhysicalPlacement(w,l).ok,false);});

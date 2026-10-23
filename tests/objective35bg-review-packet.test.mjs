@@ -1,0 +1,15 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';
+import {buildConceptReviewPacket} from '../src/preview-concept-review-packet.mjs';
+import {createCalibrationWorksheet} from '../src/calibration.mjs';
+const p=PRODUCT_MANIFESTS[0],sha='c'.repeat(64);
+const t=()=>({a:[0,0,0],b:[1,0,0],c:[0,1,0],material:'fabric',side:'asset',surfaceId:'front',uv:[[0,0],[1,0],[0,1]]});
+const model=()=>({sha256:sha,byteLength:200,nodeCount:1,vertexCount:3,triangleCount:1,mappedSurfaces:['front'],missingSurfaces:p.surfaces.slice(1).map(s=>s.id),approval:'UNVERIFIED_LOCAL_PREVIEW_ONLY',assetBoundsMeters:{min:[0,0,0],max:[1,1,0],extent:[1,1,0]},asset:{sha256:sha,modelId:`imported-${sha.slice(0,14)}`,status:'IMPORTED_UNVERIFIED',surfaceIds:['front'],triangles:[t()]}});
+const l={id:'L1',type:'text',value:'PERSONAL STRING MUST NOT LEAK',surfaceId:'front',x:.1,y:.1,width:.2,height:.1,rotationDeg:0,scaleFactor:1};
+const base=()=>({product:p,surfaceId:'front',previewSelection:{colorId:null,sizeId:null},layers:[l]});
+const worksheet=()=>createCalibrationWorksheet(p,[{surfaceId:'front',widthMm:200,heightMm:200,blankWidthMm:250,blankHeightMm:250,processCode:'DTF-TEXTILE',fixtureReference:'PRIVATE JIG',safetyInsetMm:5}],{blankSku:'SECRET-SKU',measuredBy:'PERSONAL ENGINEER',sourceDocument:'PRIVATE REFERENCE',measuredAt:'2026-10-14',modelSha256:sha});
+test('35BG review does not disclose private content, technician, supplier or manufacturing approval',async()=>{const r=await buildConceptReviewPacket({...base(),inspection:model(),worksheet:worksheet()});const s=JSON.stringify(r);for(const secret of ['PERSONAL STRING','PERSONAL ENGINEER','SECRET-SKU','PRIVATE JIG','PRIVATE REFERENCE'])assert(!s.includes(secret));assert.equal(r.checkoutEnabled,false);assert.equal(r.manufacturingApproved,false);assert.equal(r.physicalVerificationRequired,true);assert.match(r.designSha256,/^[a-f0-9]{64}$/);assert.equal(r.draftCalibrationStatus,'DRAFT_CONTEXT_MATCHED');});
+test('35BG missing model and worksheet create actionable no-go flags',async()=>{const r=await buildConceptReviewPacket(base());assert(r.issues.includes('SUPPLIER_MODEL_UNVERIFIED'));assert(r.issues.includes('NO_MEASUREMENT_WORKSHEET'));assert.equal(r.layoutFitsDraftZone,false);});
+test('35BG model mismatch blocks calibration matching',async()=>{const r=await buildConceptReviewPacket({...base(),inspection:model(),worksheet:{...worksheet(),modelSha256:'b'.repeat(64)}});assert(r.issues.includes('CALIBRATION_MODEL_MISMATCH'));assert.equal(r.draftCalibrationStatus,'NOT_VERIFIED');});
+test('35BG design edit changes digest; model stays unapproved',async()=>{const a=await buildConceptReviewPacket(base()),b=await buildConceptReviewPacket({...base(),layers:[{...l,x:.2}]});assert.notEqual(a.designSha256,b.designSha256);assert.equal(a.checkoutEnabled,false);});
+test('35BG stale or forged imported geometry refuses export',async()=>{const m=model();m.asset.triangles[0].a=[0,0,0];m.asset.triangles[0].b=[0,0,0];await assert.rejects(buildConceptReviewPacket({...base(),inspection:m}),/MODEL_TRIANGLE_DEGENERATE/);});

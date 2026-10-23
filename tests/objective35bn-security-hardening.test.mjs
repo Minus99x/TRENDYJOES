@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+
+import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';import {createCalibrationWorksheet} from '../src/calibration.mjs';import {reviewConceptCalibration} from '../src/preview-calibration-review.mjs';
+const p=PRODUCT_MANIFESTS[0],w=createCalibrationWorksheet(p,[{surfaceId:'front',widthMm:100,heightMm:110,blankWidthMm:150,blankHeightMm:150,processCode:'DTF-TEXTILE',fixtureReference:'Jig'}],{blankSku:'Blank',measuredBy:'Operator',sourceDocument:'Doc',measuredAt:'2026-10-01'});
+test('35BN unknown zone fields cannot smuggle production status into review',()=>{assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,true);w.zones[0].machineReady=true;assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,false);delete w.zones[0].machineReady;assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,true);});

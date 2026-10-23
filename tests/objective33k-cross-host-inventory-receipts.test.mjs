@@ -1,0 +1,62 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash,generateKeyPairSync,sign} from 'node:crypto';
+import {offlineConflictAdjudicationInventoryGenesisHead,OFFLINE_CONFLICT_ADJUDICATION_INVENTORY_SCHEMA} from '../src/offline-conflict-adjudication-transcript-inventory.mjs';
+import {OFFLINE_CONFLICT_INVENTORY_HEAD_RECEIPT_SCHEMA,offlineConflictInventoryHeadReceiptBodyBytes,
+ offlineConflictInventoryHeadReceiptDigest,reconcileOfflineConflictInventoryHeadReceipts} from '../src/offline-conflict-adjudication-inventory-head-receipts.mjs';
+const sha=s=>createHash('sha256').update(s).digest('hex');
+const ns='namespace_33k_test',scope=sha('33k-scope'),genesis=offlineConflictAdjudicationInventoryGenesisHead(ns,scope);
+const now=1792280000000;
+const hosts=['host_33k_alpha','host_33k_bravo','host_33k_charlie'].map(hostId=>({hostId,...generateKeyPairSync('ed25519')}));
+const pub=k=>k.publicKey.export({format:'der',type:'spki'}).toString('base64url');
+const h=(count,digest)=>({count,headDigest:digest});
+const issue=(host,head,changes={})=>{
+ const body={schema:OFFLINE_CONFLICT_INVENTORY_HEAD_RECEIPT_SCHEMA,inventorySchema:OFFLINE_CONFLICT_ADJUDICATION_INVENTORY_SCHEMA,
+  namespaceId:ns,journalScopeDigest:scope,hostId:host.hostId,genesisHead:genesis,inventoryHead:head,
+  observedAt:now-1000,expiresAt:now+30000,nonce:`nonce_${host.hostId}`,...changes};
+ const signature=sign(null,offlineConflictInventoryHeadReceiptBodyBytes(body),host.privateKey).toString('base64url');
+ return Buffer.from(JSON.stringify({body,signature}));
+};
+const heads=[h(2,sha('host-head-2')),h(2,sha('host-head-2')),h(2,sha('host-head-2'))];
+const build=(opts={})=>{
+ const hs=opts.hosts??hosts.slice(0,2),headList=opts.heads??heads.slice(0,hs.length);
+ const receipts=hs.map((x,i)=>issue(x,headList[i],opts.changes?.[i]??{}));
+ const hostPins=hs.map((x,i)=>({hostId:x.hostId,publicKey:pub(x),expectedReceiptDigest:offlineConflictInventoryHeadReceiptDigest(receipts[i]),expectedInventoryHead:headList[i]}));
+ return {receipts,hostPins,expectedNamespaceId:ns,expectedJournalScopeDigest:scope,expectedGenesisHead:genesis,nowMs:now,seenDigests:[],seenNonces:[]};
+};
+const check=a=>reconcileOfflineConflictInventoryHeadReceipts(a);
+const reject=(a,code)=>assert.throws(()=>check(a),e=>e?.code===code);
+const t=(name,fn)=>test('33K '+name,fn);
+t('authenticates two independently pinned matching heads',()=>{const v=check(build());assert.equal(v.status,'consistent-head');assert.equal(v.verified,true);});
+t('authenticated same-height conflict is not called global fork proof',()=>{const v=check(build({heads:[heads[0],h(2,sha('conflict'))]}));assert.equal(v.status,'conflicting-same-height');assert.equal(v.globallyComplete,false);});
+t('different heights do not prove conflict or ancestry',()=>{const v=check(build({heads:[heads[0],h(3,sha('later'))]}));assert.equal(v.status,'unresolved-different-heights');assert.equal(v.provesAncestry,false);});
+t('three hosts verify without assuming remote network calls',()=>{const v=check(build({hosts,heads}));assert.equal(v.hostIds.length,3);});
+t('genesis-only heads are valid and scoped',()=>assert.equal(check(build({heads:[genesis,genesis]})).status,'consistent-head'));
+t('never grants production or repair authority',()=>{const v=check(build());for(const x of ['authorizesRepair','authorizesRecovery','authorizesCheckout','authorizesProduction','independentlyWitnessedDisk','independentTimestamp'])assert.equal(v[x],false);});
+t('forged signature fails despite attacker repinning digest',()=>{const a=build();const r=JSON.parse(a.receipts[0]);r.signature=sign(null,offlineConflictInventoryHeadReceiptBodyBytes(r.body),hosts[1].privateKey).toString('base64url');a.receipts[0]=Buffer.from(JSON.stringify(r));a.hostPins[0].expectedReceiptDigest=offlineConflictInventoryHeadReceiptDigest(a.receipts[0]);reject(a,'EXCHANGE33K_SIGNATURE_INVALID');});
+t('tampered head fails independent head pin',()=>{const a=build();const r=JSON.parse(a.receipts[0]);r.body.inventoryHead.headDigest=sha('tamper');a.receipts[0]=Buffer.from(JSON.stringify(r));reject(a,'EXCHANGE33K_SCOPE_OR_HEAD_MISMATCH');});
+t('wrong independent receipt digest fails',()=>{const a=build();a.hostPins[0].expectedReceiptDigest=sha('wrong');reject(a,'EXCHANGE33K_RECEIPT_PIN_MISMATCH');});
+t('missing host receipt fails closed',()=>{const a=build();a.receipts.pop();reject(a,'EXCHANGE33K_EXTERNAL_PINS_REQUIRED');});
+t('untrusted extra receipt fails closed',()=>{const a=build();a.receipts.push(issue(hosts[2],heads[2]));reject(a,'EXCHANGE33K_EXTERNAL_PINS_REQUIRED');});
+t('host ID substitution fails',()=>{const a=build();a.hostPins[0].hostId='host_33k_other';reject(a,'EXCHANGE33K_SCOPE_OR_HEAD_MISMATCH');});
+t('duplicate pinned host identities fail',()=>{const a=build();a.hostPins[1].hostId=a.hostPins[0].hostId;reject(a,'EXCHANGE33K_HOST_PINS_INVALID');});
+t('one signing key reused by two hosts fails',()=>{const a=build();a.hostPins[1].publicKey=a.hostPins[0].publicKey;reject(a,'EXCHANGE33K_DUPLICATE_HOST_KEY');});
+t('external nonce replay fails',()=>{const a=build();a.seenNonces=[JSON.parse(a.receipts[0]).body.nonce];reject(a,'EXCHANGE33K_REPLAY');});
+t('external digest replay fails',()=>{const a=build();a.seenDigests=[a.hostPins[0].expectedReceiptDigest];reject(a,'EXCHANGE33K_REPLAY');});
+t('duplicate nonce across independently signed hosts fails',()=>{const a=build({changes:[{}, {nonce:'nonce_host_33k_alpha'}]});reject(a,'EXCHANGE33K_REPLAY');});
+t('expired receipt fails',()=>{const a=build();a.nowMs=now+30001;reject(a,'EXCHANGE33K_EXPIRED');});
+t('not-yet-valid receipt fails',()=>{const a=build();a.nowMs=now-1001;reject(a,'EXCHANGE33K_EXPIRED');});
+t('cross namespace receipt fails',()=>{const a=build();a.expectedNamespaceId='namespace_33k_other';reject(a,'EXCHANGE33K_EXTERNAL_PINS_REQUIRED');});
+t('cross scope receipt fails',()=>{const a=build();a.expectedJournalScopeDigest=sha('other');reject(a,'EXCHANGE33K_EXTERNAL_PINS_REQUIRED');});
+t('noncanonical JSON receipt fails',()=>{const a=build();a.receipts[0]=Buffer.from(a.receipts[0].toString()+' ');reject(a,'EXCHANGE33K_NONCANONICAL');});
+t('invalid UTF8 receipt fails',()=>{const a=build();a.receipts[0]=Buffer.from([0xff,0xfe]);reject(a,'EXCHANGE33K_BYTES_INVALID');});
+t('overlarge receipt fails',()=>{const a=build();a.receipts[0]=Buffer.alloc(4097);reject(a,'EXCHANGE33K_BYTES_INVALID');});
+t('extra field on signed body rejected before signature',()=>{const b=JSON.parse(issue(hosts[0],heads[0])).body;b.extra=true;assert.throws(()=>offlineConflictInventoryHeadReceiptBodyBytes(b),e=>e?.code==='EXCHANGE33K_BODY_INVALID');});
+t('invalid zero head rejected',()=>{assert.throws(()=>issue(hosts[0],h(0,sha('fake-genesis'))),e=>e?.code==='EXCHANGE33K_GENESIS_MISMATCH');});
+t('wrong inventory schema rejected',()=>{assert.throws(()=>issue(hosts[0],heads[0],{inventorySchema:'UNKNOWN'}),e=>e?.code==='EXCHANGE33K_BODY_INVALID');});
+t('expiry longer than 10 minutes rejected',()=>{assert.throws(()=>issue(hosts[0],heads[0],{expiresAt:now+900000}),e=>e?.code==='EXCHANGE33K_BODY_INVALID');});
+t('non-Ed25519 public key rejected',()=>{const a=build();a.hostPins[0].publicKey='a';reject(a,'EXCHANGE33K_HOST_KEY_INVALID');});
+t('out-of-order host pins are rejected',()=>{const a=build();a.hostPins.reverse();reject(a,'EXCHANGE33K_SCOPE_OR_HEAD_MISMATCH');});
+t('duplicate JSON keys are noncanonical',()=>{const a=build();a.receipts[0]=Buffer.from(a.receipts[0].toString().replace('{"body":','{"body":null,"body":'));reject(a,'EXCHANGE33K_NONCANONICAL');});
+t('snapshot output cannot be modified',()=>{const v=check(build());assert.throws(()=>{v.heads[0].count=99;},TypeError);});
+t('different signed receipts have different portable evidence digests',()=>{const a=check(build()),b=check(build({heads:[heads[0],h(2,sha('other'))]}));assert.notEqual(a.evidenceDigest,b.evidenceDigest);});

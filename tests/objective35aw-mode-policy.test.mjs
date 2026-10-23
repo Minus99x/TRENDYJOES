@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {permittedPreviewMode as mode,previewModelStatus as status} from '../src/preview-mode-policy.mjs';
+const shoe={geometry:{subtype:'concept-sneaker'}},hoodie={geometry:{subtype:'hooded-pullover'}};
+test('footwear concept refuses 3D until genuine inspected asset, existing apparel stays procedural',()=>{assert.equal(mode({requestedMode:'3d',product:shoe}),'2d');assert.equal(mode({requestedMode:'3d',product:hoodie}),'3d');assert.equal(mode({requestedMode:'2d',product:hoodie}),'2d');});
+test('forged unapproved model does not enable preview 3D',()=>{assert.equal(mode({requestedMode:'3d',product:shoe,imported:{asset:{status:'IMPORTED_UNVERIFIED',triangles:[{}]},approval:'APPROVED'}}),'2d');assert.match(status({product:shoe}),/2D silhouette only/);});
+test('valid import enables concept 3D but not production claims',()=>{const imported={approval:'UNVERIFIED_LOCAL_PREVIEW_ONLY',asset:{status:'IMPORTED_UNVERIFIED',triangles:[{}]}};assert.equal(mode({requestedMode:'3d',product:shoe,imported}),'3d');assert.match(status({product:shoe,imported}),/not manufacturable/);});

@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {describeActivePreview as describe} from '../src/preview-merchandise-a11y.mjs';
+const p={label:'Shoes',category:'footwear',surfaces:[{id:'outer',label:'Outer side'},{id:'tongue',label:'Tongue'}]};
+test('accessibility description follows surface and selection without exposing other-surface data',()=>{const layers=[{id:'secret',surfaceId:'tongue',value:'DO NOT EXPOSE'},{id:'safe',surfaceId:'outer'}];const a=describe({product:p,surfaceId:'outer',layers,selectedId:'safe',mode:'2d'});assert.match(a,/1 design element on this surface/);assert.match(a,/Selected design element/);assert.doesNotMatch(a,/DO NOT EXPOSE|secret/);});
+test('unavailable surface and unsupported inputs are safe and concise',()=>{assert.match(describe({product:p,surfaceId:'not-real',layers:[]}),/unavailable/);assert.equal(describe({}), 'Concept preview unavailable.');});

@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+
+import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';import {createCalibrationWorksheet} from '../src/calibration.mjs';import {buildConceptReviewPacket} from '../src/preview-concept-review-packet.mjs';
+const product=PRODUCT_MANIFESTS[0],id='CONFIDENTIAL-LAYER-ID-CLIENT-1234';
+const worksheet=createCalibrationWorksheet(product,[{surfaceId:'front',widthMm:100,heightMm:100,blankWidthMm:150,blankHeightMm:150,processCode:'DTF-TEXTILE',fixtureReference:'jig',safetyInsetMm:10}],{blankSku:'SKU',measuredBy:'Operator',sourceDocument:'Doc',measuredAt:'2026-10-01'});
+test('35BZ review packet never exposes local layer identifier through fit or diagnostic errors',async()=>{const r=await buildConceptReviewPacket({product,surfaceId:'front',previewSelection:{},layers:[{id,type:'text',value:'PRIVATE TEXT',surfaceId:'front',x:.94,y:.94,width:.04,height:.04,rotationDeg:0,scaleFactor:1}],worksheet});const serialized=JSON.stringify(r);assert(!serialized.includes(id));assert(!serialized.includes('PRIVATE TEXT'));assert(r.issues.includes('ARTWORK_OUTSIDE_MEASURED_SAFE_ZONE'));assert.equal(r.layerFit[0].layerOrdinal,1);assert.equal(r.checkoutEnabled,false);});

@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const h=readFileSync(new URL('../demo/index.html',import.meta.url),'utf8'),s=readFileSync(new URL('../demo/studio.mjs',import.meta.url),'utf8');
+test('explicit private export button and live status, no implicit cart mutation',()=>{assert.match(h,/id="download-concept-evidence"/);assert.match(h,/id="concept-evidence-status" role="status" aria-live="polite"/);assert.match(s,/preparePrivateConceptExport\(\{readSnapshot:snapshot,readRevision:\(\)=>conceptExportRevision\}\)/);assert.match(s,/availableArtworkIds:\[\.\.\.state\.artUrls\.keys\(\)\]/);assert.match(s,/download-concept-evidence'\)\.addEventListener\('click'/);});

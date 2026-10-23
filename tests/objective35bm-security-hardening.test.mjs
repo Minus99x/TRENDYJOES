@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+
+import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';import {createCalibrationWorksheet} from '../src/calibration.mjs';import {reviewConceptCalibration} from '../src/preview-calibration-review.mjs';
+const p=PRODUCT_MANIFESTS[0],w=createCalibrationWorksheet(p,[{surfaceId:'front',widthMm:100,heightMm:120,blankWidthMm:150,blankHeightMm:150,processCode:'DTF-TEXTILE',fixtureReference:'Jig'}],{blankSku:'Blank',measuredBy:'Operator',sourceDocument:'Doc',measuredAt:'2026-10-01'});
+test('35BM rejects physically impossible and non-finite forged wrap circumference',()=>{assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,true);for(const value of [0,50,5001,Infinity,NaN,-2,'200']){w.zones[0].curveCircumferenceMm=value;assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,false,String(value));}w.zones[0].curveCircumferenceMm=200;assert.equal(reviewConceptCalibration({worksheet:w,product:p,surfaceId:'front'}).canEstimatePlacement,true);});

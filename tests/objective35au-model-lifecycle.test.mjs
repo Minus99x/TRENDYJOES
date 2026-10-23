@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {createModelImportLifecycle} from '../src/preview-model-import-lifecycle.mjs';
+const basis=()=>({productId:'shirt',surfaceId:'front',variantId:''});
+test('latest import wins and tickets cannot be replayed',()=>{let ctx=basis(),n=0;const g=createModelImportLifecycle({readContext:()=>ctx});const a=g.begin(),b=g.begin();assert.equal(g.commit(a,()=>n++),false);assert.equal(g.commit(b,()=>n++),true);assert.equal(g.commit(b,()=>n++),false);assert.equal(n,1);});
+test('product, surface, variant and explicit reset invalidate results',()=>{let ctx=basis();const g=createModelImportLifecycle({readContext:()=>ctx});for(const field of ['productId','surfaceId','variantId']){const t=g.begin();ctx={...ctx,[field]:'changed'};assert.equal(g.current(t),false);ctx=basis();g.invalidate();assert.equal(g.current(t),false);}assert.equal(g.localOnly,true);assert.equal(g.authorizesManufacturing,false);});
+test('malformed bindings and invalid callbacks fail closed',()=>{let ctx=basis();const g=createModelImportLifecycle({readContext:()=>ctx});const t=g.begin();assert.throws(()=>g.commit(t,null),/MODEL_COMMIT_INVALID/);ctx={...ctx,excess:1};assert.equal(g.commit(t,()=>{}),false);assert.throws(()=>g.begin(),/MODEL_CONTEXT_INVALID/);});

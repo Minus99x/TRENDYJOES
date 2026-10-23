@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const src=readFileSync(new URL('../demo/studio.mjs',import.meta.url),'utf8');
+test('renderer, clear and product changes all enforce explicit mode policy',()=>{assert.match(src,/state\.mode=permittedPreviewMode\(\{requestedMode:state\.mode,product:state\.product,imported:state\.imported\}\)/);assert.match(src,/state\.mode=permittedPreviewMode\(\{requestedMode:state\.mode,product:p,imported:null\}\)/);assert.match(src,/state\.mode=permittedPreviewMode\(\{requestedMode:state\.mode,product:state\.product,imported:null\}\)/);});
