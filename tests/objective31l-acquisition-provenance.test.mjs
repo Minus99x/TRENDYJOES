@@ -1,0 +1,68 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {generateKeyPairSync,sign,createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {createOfflineForensicPortableReviewBundle} from '../src/offline-forensic-portable-review.mjs';
+import {OFFLINE_ACQUISITION_RECEIPT_SCHEMA,offlineAcquisitionReceiptSigningBytes,createOfflineAcquisitionReceipt,verifyOfflineAcquisitionRetentionHistory,createOfflineForensicAcquisitionManifest,verifyOfflineForensicAcquisitionManifest} from '../src/offline-forensic-acquisition-provenance.mjs';
+const ROOT='0'.repeat(64),zero={count:0,headDigest:ROOT},heads={forensic:zero,publication:zero,outbox:zero};
+const registryId='synthetic-acquisition-31l',anchorType='registry';
+const key=()=>generateKeyPairSync('ed25519');
+const sha=x=>createHash('sha256').update(x).digest('hex');
+const err=(fn,code)=>assert.throws(fn,e=>e?.code===code);
+function fixture(){
+ const keys=[key(),key(),key()],reviewKeys=[key(),key()],witnessKeys=[key(),key(),key()];
+ const retentionTrust={registryId,anchorType,retentionWitnesses:keys.map((k,i)=>({id:`retention-witness-31l-${i}`,publicKey:k.publicKey})),retentionQuorum:2};
+ const reviewers=reviewKeys.map((k,i)=>({id:`forensic-reviewer-31l-${i}`,publicKey:k.publicKey,readLatest:async()=>null}));
+ const policy={reviewers,quorum:2};
+ const forensicTrust={registryId,anchorType,witnesses:witnessKeys.map((k,i)=>({id:`forensic-witness-31l-${i}`,publicKey:k.publicKey})),witnessQuorum:2,reviewerPolicies:[policy],reviewerEpochs:[{startIndex:1,...policy}]};
+ const envelope=createOfflineForensicPortableReviewBundle({registryId,anchorType,forensicEvents:[],publications:[],transitionCertificates:[],outboxEvents:[],declaredHeads:heads});
+ const signing=(body)=>keys.slice(0,2).map((k,i)=>({witnessId:retentionTrust.retentionWitnesses[i].id,signature:sign(null,offlineAcquisitionReceiptSigningBytes(body),k.privateKey).toString('base64url')}));
+ const add=(history,phase,acquisitionId='acquisition-31l-primary',h=heads,bundleDigest=envelope.transportDigest)=>{
+  const body={schema:OFFLINE_ACQUISITION_RECEIPT_SCHEMA,registryId,anchorType,index:history.length+1,previousDigest:history.at(-1)?.digest??ROOT,acquisitionId,phase,heads:structuredClone(h),bundleDigest:phase==='PRE'?ROOT:bundleDigest,observedAt:1700000000000+history.length*1000};
+  history.push(createOfflineAcquisitionReceipt({body,signatures:signing(body)}));return history.at(-1);
+ };
+ const history=[];add(history,'PRE');add(history,'POST');
+ const pin=hist=>({count:hist.length,headDigest:hist.at(-1)?.digest??ROOT});
+ const manifest=()=>createOfflineForensicAcquisitionManifest({acquisitionId:'acquisition-31l-primary',envelope,receiptHistory:history});
+ const verify=(m=manifest(),h=history,rt=retentionTrust,fp=heads)=>verifyOfflineForensicAcquisitionManifest({manifest:m,independentPins:fp,forensicTrust,retentionTrust:rt,independentRetentionHead:pin(h)});
+ const verifyHistory=(h=history,rt=retentionTrust,p=pin(h))=>verifyOfflineAcquisitionRetentionHistory({history:h,trust:rt,expectedHead:p});
+ return {keys,history,retentionTrust,forensicTrust,envelope,add,pin,manifest,verify,verifyHistory,signing};
+}
+test('31L independently signed PRE/POST provenance verifies portable forensic review',()=>{const f=fixture(),r=f.verify();assert.equal(r.verified,true);assert.equal(r.classification,'EMPTY_VERIFIED_NO_AUTHORITY');assert.equal(r.productionApproved,false);});
+test('31L transport JSON round-trip verifies without exporting private keys',()=>{const f=fixture();assert.equal(f.verify(JSON.parse(JSON.stringify(f.manifest()))).verified,true);});
+test('31L receipts are domain-separated and digest chained',()=>{const f=fixture(),r=f.verifyHistory();assert.equal(r.count,2);assert.equal(r.headDigest,f.history[1].digest);});
+test('31L signed acquisition remains read-only and forbids retry, ACK, pending deletion',()=>{const f=fixture(),r=f.verify();assert.equal(r.mayRetry,false);assert.equal(r.mayAcknowledge,false);assert.equal(r.mayDeletePending,false);});
+test('31L independently pinned receipt head rejects complete valid-prefix rollback',()=>{const f=fixture();err(()=>f.verifyHistory([],f.retentionTrust,f.pin(f.history)),'ACQUISITION_RETENTION_PIN_INVALID');});
+test('31L independently pinned head rejects substituted terminal digest',()=>{const f=fixture();err(()=>f.verifyHistory(f.history,f.retentionTrust,{count:2,headDigest:'f'.repeat(64)}),'ACQUISITION_RETENTION_PIN_INVALID');});
+test('31L forged witness signature fails even with recomputed record digest',()=>{const f=fixture(),h=structuredClone(f.history);h[1].signatures[0].signature='A'.repeat(86);const {digest,...u}=h[1];h[1].digest=sha(Buffer.from(`${OFFLINE_ACQUISITION_RECEIPT_SCHEMA}\0${JSON.stringify(u)}`));err(()=>f.verifyHistory(h,f.retentionTrust,f.pin(h)),'ACQUISITION_RECEIPT_SIGNATURE_INVALID');});
+test('31L duplicate signer cannot satisfy quorum',()=>{const f=fixture(),h=structuredClone(f.history);h[1].signatures[1]=structuredClone(h[1].signatures[0]);err(()=>f.verifyHistory(h,f.retentionTrust,f.pin(h)),'ACQUISITION_RECEIPT_SIGNATURE_INVALID');});
+test('31L wrong independently pinned retention key rejects valid signatures',()=>{const f=fixture(),t={...f.retentionTrust,retentionWitnesses:f.retentionTrust.retentionWitnesses.map((w,i)=>i===0?{...w,publicKey:key().publicKey}:w)};err(()=>f.verifyHistory(f.history,t),'ACQUISITION_RECEIPT_SIGNATURE_INVALID');});
+test('31L duplicate retention public keys in independent trust rejected',()=>{const f=fixture(),t={...f.retentionTrust,retentionWitnesses:f.retentionTrust.retentionWitnesses.map((w,i)=>i===1?{...w,publicKey:f.retentionTrust.retentionWitnesses[0].publicKey}:w)};err(()=>f.verifyHistory(f.history,t),'ACQUISITION_RETENTION_TRUST_INVALID');});
+test('31L minority witness configuration fails closed',()=>{const f=fixture(),t={...f.retentionTrust,retentionQuorum:1};err(()=>f.verifyHistory(f.history,t),'ACQUISITION_RETENTION_TRUST_INVALID');});
+test('31L forged POST heads after signed PRE rejected as multi-snapshot race',()=>{const f=fixture(),h=[];f.add(h,'PRE');f.add(h,'POST','acquisition-31l-primary',{...heads,outbox:{count:1,headDigest:'a'.repeat(64)}});err(()=>f.verifyHistory(h),'ACQUISITION_SNAPSHOT_RACE_OR_REPLAY');});
+test('31L PRE and POST cannot substitute acquisition identifiers',()=>{const f=fixture(),h=[];f.add(h,'PRE');f.add(h,'POST','acquisition-31l-other');err(()=>f.verifyHistory(h),'ACQUISITION_SNAPSHOT_RACE_OR_REPLAY');});
+test('31L POST cannot replay another signed envelope digest',()=>{const f=fixture(),h=[];f.add(h,'PRE');f.add(h,'POST','acquisition-31l-primary',heads,'a'.repeat(64));const m=createOfflineForensicAcquisitionManifest({acquisitionId:'acquisition-31l-primary',envelope:f.envelope,receiptHistory:h});err(()=>f.verify(m,h),'ACQUISITION_MANIFEST_BINDING_INVALID');});
+test('31L repeated acquisition ID across nonadjacent signed pairs rejected',()=>{const f=fixture(),h=structuredClone(f.history);f.add(h,'PRE','acquisition-31l-other');f.add(h,'POST','acquisition-31l-other');f.add(h,'PRE','acquisition-31l-primary');f.add(h,'POST','acquisition-31l-primary');err(()=>f.verifyHistory(h),'ACQUISITION_SNAPSHOT_RACE_OR_REPLAY');});
+test('31L independent retained history detects signed head rollback between acquisitions',()=>{const f=fixture(),h=[];const newer={...heads,publication:{count:1,headDigest:'a'.repeat(64)}};f.add(h,'PRE','acquisition-31l-first',newer);f.add(h,'POST','acquisition-31l-first',newer);f.add(h,'PRE','acquisition-31l-second',heads);f.add(h,'POST','acquisition-31l-second',heads);err(()=>f.verifyHistory(h),'ACQUISITION_SNAPSHOT_RACE_OR_REPLAY');});
+test('31L two distinct acquisitions with same stable heads and independent pin pass',()=>{const f=fixture(),h=structuredClone(f.history);f.add(h,'PRE','acquisition-31l-second');f.add(h,'POST','acquisition-31l-second');assert.equal(f.verifyHistory(h).count,4);});
+test('31L odd PRE-only history fails closed',()=>{const f=fixture(),h=f.history.slice(0,1);err(()=>f.verifyHistory(h,f.retentionTrust,f.pin(h)),'ACQUISITION_RETENTION_PIN_INVALID');});
+test('31L POST-only history fails closed',()=>{const f=fixture(),h=[f.history[1]];err(()=>f.verifyHistory(h,f.retentionTrust,f.pin(h)),'ACQUISITION_RETENTION_PIN_INVALID');});
+test('31L nonmonotonic signed observation order fails',()=>{const f=fixture(),h=[];f.add(h,'PRE');f.add(h,'POST');h[1].observedAt=h[0].observedAt;err(()=>f.verifyHistory(h),'ACQUISITION_RECEIPT_CHAIN_INVALID');});
+test('31L extra signed receipt field is rejected',()=>{const f=fixture(),h=structuredClone(f.history);h[1].unexpected='yes';err(()=>f.verifyHistory(h),'ACQUISITION_RECEIPT_RECORD_INVALID');});
+test('31L untrusted manifest cannot supply its own independent retention pin',()=>{const f=fixture(),m=f.manifest();m.independentRetentionHead=f.pin(f.history);err(()=>f.verify(m),'ACQUISITION_MANIFEST_INVALID');});
+test('31L wrong manifest acquisition identifier rejected',()=>{const f=fixture(),m=f.manifest();m.acquisitionId='acquisition-31l-substitute';err(()=>f.verify(m),'ACQUISITION_MANIFEST_BINDING_INVALID');});
+test('31L wrong independent forensic pins rejected',()=>{const f=fixture(),m=f.manifest();err(()=>f.verify(m,f.history,f.retentionTrust,{...heads,outbox:{count:1,headDigest:'a'.repeat(64)}}),'ACQUISITION_MANIFEST_BINDING_INVALID');});
+test('31L forged portable bundle bytes rejected even with valid signed retention receipts',()=>{const f=fixture(),m=f.manifest();m.envelope.payload.anchorType='journal';err(()=>f.verify(m),'FORENSIC_PORTABLE_REVIEW_TRANSPORT_INVALID');});
+test('31L receipt body rejects noncanonical phase and invalid empty head',()=>{const f=fixture(),body={...f.history[0],phase:'RETRY'};delete body.signatures;delete body.digest;err(()=>offlineAcquisitionReceiptSigningBytes(body),'ACQUISITION_RECEIPT_BODY_INVALID');body.phase='PRE';body.heads={...heads,outbox:{count:0,headDigest:'f'.repeat(64)}};err(()=>offlineAcquisitionReceiptSigningBytes(body),'ACQUISITION_RECEIPT_BODY_INVALID');});
+test('31L cross-process JSON serialization preserves signatures and independently pinned verification',()=>{
+ const f=fixture(),modulePath=fileURLToPath(new URL('../src/offline-forensic-acquisition-provenance.mjs',import.meta.url));
+ const code=`import {createPublicKey} from 'node:crypto';import {verifyOfflineAcquisitionRetentionHistory} from ${JSON.stringify(modulePath)};const x=JSON.parse(process.argv[1]);x.trust.retentionWitnesses=x.trust.retentionWitnesses.map(w=>({...w,publicKey:createPublicKey(w.pem)}));for(const w of x.trust.retentionWitnesses)delete w.pem;const r=verifyOfflineAcquisitionRetentionHistory(x);console.log(r.count);`;
+ const trust={...f.retentionTrust,retentionWitnesses:f.retentionTrust.retentionWitnesses.map(w=>({id:w.id,pem:w.publicKey.export({type:'spki',format:'pem'})}))};
+ const p=spawnSync(process.execPath,['--input-type=module','-e',code,JSON.stringify({history:f.history,trust,expectedHead:f.pin(f.history)})],{encoding:'utf8',timeout:10000});assert.equal(p.status,0,p.stderr);assert.equal(p.stdout.trim(),'2');
+});
+
+test('31L retention signing key reused as forensic witness fails independence gate',()=>{const f=fixture(),t={...f.forensicTrust,witnesses:f.forensicTrust.witnesses.map((w,i)=>i===0?{...w,publicKey:f.retentionTrust.retentionWitnesses[0].publicKey}:w)};err(()=>verifyOfflineForensicAcquisitionManifest({manifest:f.manifest(),independentPins:heads,forensicTrust:t,retentionTrust:f.retentionTrust,independentRetentionHead:f.pin(f.history)}),'ACQUISITION_RETENTION_NOT_INDEPENDENT');});
+test('31L retention signing key reused as forensic reviewer fails independence gate',()=>{const f=fixture(),p=f.forensicTrust.reviewerPolicies[0],t={...f.forensicTrust,reviewerPolicies:[{...p,reviewers:p.reviewers.map((w,i)=>i===0?{...w,publicKey:f.retentionTrust.retentionWitnesses[0].publicKey}:w)}]};err(()=>verifyOfflineForensicAcquisitionManifest({manifest:f.manifest(),independentPins:heads,forensicTrust:t,retentionTrust:f.retentionTrust,independentRetentionHead:f.pin(f.history)}),'ACQUISITION_RETENTION_NOT_INDEPENDENT');});
+test('31L signed new acquisition may advance independently pinned heads monotonically',()=>{const f=fixture(),h=structuredClone(f.history),advanced={...heads,publication:{count:1,headDigest:'a'.repeat(64)}};f.add(h,'PRE','acquisition-31l-advanced',advanced);f.add(h,'POST','acquisition-31l-advanced',advanced);assert.equal(f.verifyHistory(h).count,4);});
+test('31L signed unchanged-count digest substitution across acquisitions fails',()=>{const f=fixture(),h=structuredClone(f.history),changed={...heads,outbox:{count:0,headDigest:'a'.repeat(64)}};err(()=>f.add(h,'PRE','acquisition-31l-bad-head',changed),'ACQUISITION_RECEIPT_BODY_INVALID');});
