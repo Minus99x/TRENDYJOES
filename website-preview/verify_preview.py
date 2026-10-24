@@ -13,6 +13,7 @@ with sync_playwright() as p:
  assert desktop.locator('#home-cards .collection-card').count()==6
  desktop.screenshot(path=str(ROOT/'desktop-preview.png'),full_page=True,animations='disabled')
  desktop.get_by_role('link',name='Enter the Studio').first.click()
+ desktop.wait_for_function("document.querySelector('[data-page=studio]').hidden===false")
  assert desktop.locator('[data-page=studio]').is_visible()
  assert desktop.locator('[data-page=home]').is_hidden()
  assert desktop.locator('#design-canvas').is_visible()
@@ -50,7 +51,8 @@ with sync_playwright() as p:
  assert desktop.locator('#layer-list button').count()==3
  assert 'Artwork added' in desktop.locator('#editor-status').inner_text()
  desktop.locator('.site-header a[href="#contact"]').click()
- print('CONTACT DEBUG',desktop.evaluate('location.href'),desktop.locator('[data-page=home]').is_visible(),desktop.locator('[data-page=studio]').is_visible(),desktop.locator('[data-page=contact]').is_visible()); desktop.wait_for_timeout(300); assert desktop.locator('[data-page=contact]').is_visible()
+ desktop.wait_for_function("document.querySelector('[data-page=contact]').hidden===false")
+ assert desktop.locator('[data-page=contact]').is_visible()
  desktop.locator('#inquiry-name').fill('Sample')
  desktop.locator('#inquiry-detail').fill('Personalized printing project')
  desktop.locator('#inquiry button[type=submit]').click()
@@ -64,7 +66,8 @@ with sync_playwright() as p:
  mobile.locator('.menu-toggle').click()
  assert mobile.locator('#nav').evaluate('(e)=>getComputedStyle(e).display')=='flex'
  mobile.locator('#nav').get_by_role('link',name='Custom Studio').click()
- mobile.wait_for_timeout(350);print('MOBILE DEBUG',mobile.evaluate('location.href'),mobile.locator('[data-page=studio]').is_visible());assert mobile.locator('[data-page=studio]').is_visible()
+ mobile.wait_for_function("document.querySelector('[data-page=studio]').hidden===false")
+ assert mobile.locator('[data-page=studio]').is_visible()
  mobile.screenshot(path=str(ROOT/'studio-mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+2')
  assert not js,js
