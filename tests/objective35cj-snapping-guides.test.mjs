@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {snapPreviewPosition as run} from '../src/preview-snapping-guides.mjs';
+test('35CJ snaps to center, edges and grid without altering inputs',()=>{const p=Object.freeze({x:44.5,y:0.5,zoneWidth:100,zoneHeight:100,width:10,height:10,threshold:1,gridMm:5});const o=run(p);assert.equal(o.x,45);assert.equal(o.y,0);assert.equal(o.xGuide,'center');assert.equal(p.x,44.5);});
+test('35CJ out of threshold remains unsnapped',()=>{const o=run({x:7,y:17,zoneWidth:100,zoneHeight:100,width:10,height:10,threshold:0.5});assert.equal(o.x,7);assert.equal(o.xGuide,null);});
+test('35CJ rejects bad grid and nonfinite threshold',()=>{for(const change of [{gridMm:0},{threshold:NaN},{x:'7'}])assert.throws(()=>run({x:5,y:5,zoneWidth:20,zoneHeight:20,width:4,height:4,...change}));});
