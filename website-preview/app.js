@@ -32,9 +32,13 @@ function openCanvas(product,surface){
  restoreImages();render();
 }
 function allDesigns(){const map=clone(state.designs);map[designKey()]={blank:state.blank,layers:clone(state.layers)};return map;}
-function draftSummary(){const map=allDesigns();return Object.entries(map).filter(([,d])=>d.layers.length).map(([key,d])=>{
- const [i,surface]=key.split(':');return `${products[Number(i)].display} · ${surface}: ${d.layers.length} layer${d.layers.length===1?'':'s'}`;
- });}
+function draftSummary(){
+ // The editor redraws on every pointer movement. Never deep-copy image bytes just to count layers.
+ const active=designKey();const counts=[];
+ for(const [key,d] of Object.entries(state.designs))if(key!==active&&d.layers.length)counts.push([key,d.layers.length]);
+ if(state.layers.length)counts.push([active,state.layers.length]);
+ return counts.map(([key,count])=>{const [i,surface]=key.split(':');return `${products[Number(i)].display} · ${surface}: ${count} layer${count===1?'':'s'}`;});
+}
 
 const nextId=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const clone=s=>JSON.parse(JSON.stringify(s));
