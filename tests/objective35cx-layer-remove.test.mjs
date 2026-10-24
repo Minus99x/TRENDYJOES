@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {addWorkbenchLayer} from '../src/workbench-layer-add.mjs';import {removeWorkbenchLayer} from '../src/workbench-layer-remove.mjs';
+test('35CX safely removes only chosen layer',()=>{let d=makeWorkbenchDraft({productId:'a'});for(const id of ['x','y'])d=addWorkbenchLayer(d,{id,kind:'shape',width:1,height:1});assert.deepEqual(removeWorkbenchLayer(d,'x').layers.map(l=>l.id),['y']);assert.equal(d.layers.length,2);});
+test('35CX rejects nonexisting layer',()=>{assert.throws(()=>removeWorkbenchLayer(makeWorkbenchDraft({productId:'a'}),'fake'));});
