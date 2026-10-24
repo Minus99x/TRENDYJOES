@@ -1,0 +1,6 @@
+import {assertWorkbenchDraft} from './workbench-draft-state.mjs';
+/** Immutable bounded undo stack, no timers or storage side-effects. */
+export function createWorkbenchHistory(initial,{limit=50}={}){assertWorkbenchDraft(initial);if(!Number.isInteger(limit)||limit<1||limit>200)throw new RangeError('WORKBENCH_HISTORY_LIMIT');return Object.freeze({past:Object.freeze([]),present:initial,future:Object.freeze([]),limit});}
+export function recordWorkbenchEdit(history,updated){assertWorkbenchDraft(updated);if(updated.revision<=history.present.revision)throw new Error('WORKBENCH_HISTORY_REVISION');return Object.freeze({...history,past:Object.freeze([...history.past,history.present].slice(-history.limit)),present:updated,future:Object.freeze([])});}
+export function undoWorkbenchEdit(h){if(!h.past.length)return h;const past=h.past.slice(),present=past.pop();return Object.freeze({...h,past:Object.freeze(past),present,future:Object.freeze([h.present,...h.future])});}
+export function redoWorkbenchEdit(h){if(!h.future.length)return h;const future=h.future.slice(),present=future.shift();return Object.freeze({...h,past:Object.freeze([...h.past,h.present].slice(-h.limit)),present,future:Object.freeze(future)});}
