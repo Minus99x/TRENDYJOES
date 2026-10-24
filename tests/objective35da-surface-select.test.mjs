@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {selectWorkbenchSurface} from '../src/workbench-surface-select.mjs';
+test('35DA switches only into configured concept surface',()=>{const d=makeWorkbenchDraft({productId:'a',surfaceIds:['front','back']}),n=selectWorkbenchSurface(d,'back');assert.equal(n.activeSurface,'back');assert.equal(n.revision,1);assert.equal(selectWorkbenchSurface(n,'back'),n);});
+test('35DA rejects unknown surface',()=>{assert.throws(()=>selectWorkbenchSurface(makeWorkbenchDraft({productId:'a'}),'back'));});

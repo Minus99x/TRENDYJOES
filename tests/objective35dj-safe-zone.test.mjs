@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {addWorkbenchLayer} from '../src/workbench-layer-add.mjs';import {reviewWorkbenchSafeZone} from '../src/workbench-safe-zone.mjs';
+test('35DJ identifies layout entering margins',()=>{const d=addWorkbenchLayer(makeWorkbenchDraft({productId:'a'}),{id:'a',kind:'shape',x:1,y:1,width:5,height:5}),r=reviewWorkbenchSafeZone(d,{zoneWidth:100,zoneHeight:100,margin:3});assert.equal(r.warnings[0].warning,'INSIDE_MARGIN');});
+test('35DJ hidden content does not generate print-zone review',()=>{const d=makeWorkbenchDraft({productId:'a'});assert.equal(reviewWorkbenchSafeZone(d,{zoneWidth:100,zoneHeight:100}).warnings.length,0);});

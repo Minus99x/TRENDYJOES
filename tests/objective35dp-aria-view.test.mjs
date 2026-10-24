@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {addWorkbenchLayer} from '../src/workbench-layer-add.mjs';import {buildWorkbenchAriaView} from '../src/workbench-aria-view.mjs';
+test('35DP creates stable screen-reader labels without DOM side effects',()=>{const d=addWorkbenchLayer(makeWorkbenchDraft({productId:'crew'}),{id:'g',kind:'text',width:5,height:5,text:'hello'});const a=buildWorkbenchAriaView(d);assert.equal(a.layerCount,1);assert.match(a.summary,/No manufacturing/);});
+test('35DP denies invalid surface scope',()=>{assert.throws(()=>buildWorkbenchAriaView(makeWorkbenchDraft({productId:'crew'}),{surfaceId:'back'}));});

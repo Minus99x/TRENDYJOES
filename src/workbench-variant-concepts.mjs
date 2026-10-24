@@ -1,0 +1,2 @@
+import {assertWorkbenchDraft} from './workbench-draft-state.mjs';import {buildPreviewVariantChoices} from './preview-variant-picker.mjs';
+export function listWorkbenchVariants(d,{sizes,colors}={}){assertWorkbenchDraft(d);const r=buildPreviewVariantChoices({sizes,colors,surfaces:d.surfaces});return Object.freeze({choices:r.choices,count:r.count,inventoryVerified:false,priceApproved:false,checkoutEnabled:false,localOnly:true});}

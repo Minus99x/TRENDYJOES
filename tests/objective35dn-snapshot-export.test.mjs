@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {exportWorkbenchSnapshot} from '../src/workbench-snapshot-export.mjs';
+test('35DN export strips unexpected user-defined authority fields',()=>{const d=makeWorkbenchDraft({productId:'a'}),s=JSON.parse(exportWorkbenchSnapshot({...d,shopifyToken:'secret'}));assert.equal(s.shopifyToken,undefined);assert.equal(s.priceApproved,false);assert.equal(s.localOnly,true);});
+test('35DN fails on draft claiming checkout authority',()=>{const d=makeWorkbenchDraft({productId:'a'});assert.throws(()=>exportWorkbenchSnapshot({...d,checkoutEnabled:true}));});

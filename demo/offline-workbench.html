@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TrendyJoes · Local Concept Workbench</title><style>
+:root{font-family:system-ui,sans-serif;background:#e9e5df;color:#27262a}*{box-sizing:border-box}main{max-width:1150px;margin:auto;padding:1rem}header{border-bottom:5px solid #7A2A30}h1{margin:.6rem 0}small{color:#524f54}.layout{display:grid;grid-template-columns:minmax(290px,1fr) minmax(240px,330px);gap:1rem}section{padding:1rem;background:#fff;border:1px solid #777;border-radius:8px}button,input,select{padding:.5rem;margin:.25rem;font:inherit;max-width:100%}button{cursor:pointer;background:#52697A;color:white;border:none;border-radius:3px}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #7A2A30}svg{width:100%;background:#f3e9d7;border:1px dashed #52697A;aspect-ratio:1}.warning{color:#7A2A30;font-weight:bold}#status{min-height:1.5rem}#layers{max-height:220px;overflow:auto}#layers button{display:block;width:100%;text-align:left}.controls{display:flex;flex-wrap:wrap}pre{white-space:pre-wrap;overflow-wrap:anywhere} @media(max-width:700px){.layout{grid-template-columns:1fr}}</style></head>
+<body><main><header><h1>TrendyJoes · Local Design Workbench</h1><p>Standalone concept editor. Layout units are illustrative, not calibrated print measurements. No uploads, prices, checkout, production authority or Shopify writes.</p></header>
+<div class="layout"><section aria-label="Design canvas"><h2 id="product-title">Concept design</h2><label for="product">Concept product</label><select id="product"></select><label for="surface">Surface</label><select id="surface"></select><svg id="canvas" role="img" aria-label="Illustrative 100 by 100 design zone" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"></svg><p id="status" role="status" aria-live="polite"></p><div class="controls"><button id="add-text">Add text</button><button id="add-shape">Add shape</button><button id="move-left">← Left</button><button id="move-right">Right →</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="review">Review design</button><button id="export">Export JSON</button></div></section>
+<section aria-label="Layer tools"><h2>Layers</h2><div id="layers" role="group" aria-label="Selectable design layers"></div><p><label for="text-input">Selected text</label><input id="text-input" maxlength="2000" placeholder="Edit selected text"><label for="color-input">Color</label><input id="color-input" type="color" value="#7a2a30"></p><div class="controls"><button id="apply">Apply edit</button><button id="duplicate">Duplicate</button><button id="remove">Remove</button><button id="lock">Lock / unlock</button></div><h2>Local review</h2><pre id="report" aria-live="polite">Review has not been run.</pre><p class="warning">Visual concept only — never physical production approval.</p></section></div></main>
+<script type="module">
+import {PRODUCT_MANIFESTS} from '../src/catalog.mjs';
+import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';
+import {addWorkbenchLayer} from '../src/workbench-layer-add.mjs';
+import {editWorkbenchLayer} from '../src/workbench-layer-edit.mjs';
+import {duplicateWorkbenchLayer} from '../src/workbench-layer-duplicate.mjs';
+import {removeWorkbenchLayer} from '../src/workbench-layer-remove.mjs';
+import {setWorkbenchLayerFlags} from '../src/workbench-layer-flags.mjs';
+import {selectWorkbenchSurface} from '../src/workbench-surface-select.mjs';
+import {nudgeWorkbenchLayer} from '../src/workbench-keyboard-nudge.mjs';
+import {createWorkbenchHistory,recordWorkbenchEdit,undoWorkbenchEdit,redoWorkbenchEdit} from '../src/workbench-history.mjs';
+import {inspectWorkbenchQuality} from '../src/workbench-quality-report.mjs';
+import {exportWorkbenchSnapshot} from '../src/workbench-snapshot-export.mjs';
+import {buildWorkbenchAriaView} from '../src/workbench-aria-view.mjs';
+const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';let history,selected=null,counter=0;
+for(const product of PRODUCT_MANIFESTS)$('product').add(new Option(product.label,product.id));
+function fresh(){const p=PRODUCT_MANIFESTS.find(x=>x.id===$('product').value);history=createWorkbenchHistory(makeWorkbenchDraft({productId:p.id,surfaceIds:p.surfaces.map(s=>s.id)}));selected=null;const options=p.surfaces.map(s=>new Option(s.label,s.id));$('surface').replaceChildren(...options);$('report').textContent='Review has not been run.';redraw();}
+function redraw(){const d=history.present;const view=buildWorkbenchAriaView(d),p=PRODUCT_MANIFESTS.find(x=>x.id===d.productId);$('product-title').textContent=p?.label||d.productId;$('surface').value=d.activeSurface;
+ const nodes=[];for(const l of d.layers.filter(x=>x.surfaceId===d.activeSurface&&x.visible)){const el=document.createElementNS(NS,l.kind==='text'?'text':'rect');if(l.kind==='text'){el.setAttribute('x',String(l.x));el.setAttribute('y',String(l.y+l.height));el.setAttribute('font-size',String(Math.max(2,Math.min(l.height,16))));el.textContent=l.text;}else{for(const [k,v] of Object.entries({x:l.x,y:l.y,width:l.width,height:l.height}))el.setAttribute(k,String(v));}el.setAttribute('fill',l.color);el.setAttribute('opacity',l.kind==='shape'?'0.7':'1');if(l.id===selected)el.setAttribute('stroke','#7A2A30');nodes.push(el);}
+ $('canvas').replaceChildren(...nodes);const buttons=d.layers.filter(l=>l.surfaceId===d.activeSurface).map(l=>{const b=document.createElement('button');b.textContent=(l.id===selected?'● ':'○ ')+`${l.id} (${l.kind}${l.locked?', locked':''})`;b.setAttribute('aria-pressed',String(l.id===selected));b.onclick=()=>{selected=l.id;$('text-input').value=l.text;$('color-input').value=l.color;redraw();};return b;});$('layers').replaceChildren(...buttons);$('status').textContent=view.summary;}
+function apply(fn){try{const next=fn(history.present);history=recordWorkbenchEdit(history,next);$('report').textContent='Design changed. Run review again.';redraw();}catch(err){$('status').textContent=`Action blocked: ${err.message}`;}}
+$('product').onchange=fresh;$('surface').onchange=()=>{apply(d=>selectWorkbenchSurface(d,$('surface').value));selected=null;};
+$('add-text').onclick=()=>{const id='text'+(++counter);apply(d=>addWorkbenchLayer(d,{id,kind:'text',width:25,height:10,x:8,y:8,text:'Your text',color:'#7a2a30'}));selected=id;redraw();};
+$('add-shape').onclick=()=>{const id='shape'+(++counter);apply(d=>addWorkbenchLayer(d,{id,kind:'shape',width:20,height:16,x:12,y:12,color:'#52697A'}));selected=id;redraw();};
+$('apply').onclick=()=>{if(selected)apply(d=>editWorkbenchLayer(d,selected,{color:$('color-input').value,...(d.layers.find(l=>l.id===selected)?.kind==='text'?{text:$('text-input').value}:{})}));};
+$('duplicate').onclick=()=>{if(selected){const id='copy'+(++counter);apply(d=>duplicateWorkbenchLayer(d,selected,{newId:id}));selected=id;redraw();}};
+$('remove').onclick=()=>{if(selected){apply(d=>removeWorkbenchLayer(d,selected));selected=null;redraw();}};
+$('lock').onclick=()=>{if(selected)apply(d=>setWorkbenchLayerFlags(d,selected,{locked:!d.layers.find(l=>l.id===selected).locked}));};
+$('move-left').onclick=()=>{if(selected)apply(d=>nudgeWorkbenchLayer(d,selected,{key:'ArrowLeft',zoneWidth:100,zoneHeight:100}));};
+$('move-right').onclick=()=>{if(selected)apply(d=>nudgeWorkbenchLayer(d,selected,{key:'ArrowRight',zoneWidth:100,zoneHeight:100}));};
+$('undo').onclick=()=>{history=undoWorkbenchEdit(history);selected=null;redraw();};$('redo').onclick=()=>{history=redoWorkbenchEdit(history);selected=null;redraw();};
+$('review').onclick=()=>{try{$('report').textContent=JSON.stringify(inspectWorkbenchQuality(history.present),null,2);}catch(err){$('report').textContent=`Review blocked: ${err.message}`;}};
+$('export').onclick=()=>{const blob=new Blob([exportWorkbenchSnapshot(history.present)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='trendyjoes-local-concept.json';a.click();URL.revokeObjectURL(url);};
+$('product').value=PRODUCT_MANIFESTS[0].id;fresh();
+</script></body></html>

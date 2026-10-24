@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {addWorkbenchLayer} from '../src/workbench-layer-add.mjs';import {reviewWorkbenchOverlaps} from '../src/workbench-overlap-review.mjs';
+test('35DK reports overlapping artwork on active surface',()=>{let d=makeWorkbenchDraft({productId:'a'});for(const id of ['a','b'])d=addWorkbenchLayer(d,{id,kind:'shape',width:10,height:10});assert.equal(reviewWorkbenchOverlaps(d).overlapCount,1);});
+test('35DK refuses unknown surface',()=>{assert.throws(()=>reviewWorkbenchOverlaps(makeWorkbenchDraft({productId:'a'}),{surfaceId:'elsewhere'}));});

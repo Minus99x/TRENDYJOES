@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeWorkbenchDraft} from '../src/workbench-draft-state.mjs';import {listWorkbenchVariants} from '../src/workbench-variant-concepts.mjs';
+test('35DL generates concept size/color/surface matrix only',()=>{const d=makeWorkbenchDraft({productId:'a',surfaceIds:['front','back']});const r=listWorkbenchVariants(d,{sizes:['S','M'],colors:['Slate']});assert.equal(r.count,4);assert.equal(r.checkoutEnabled,false);});
+test('35DL blocks unbounded combinatorial matrix',()=>{const d=makeWorkbenchDraft({productId:'a'});assert.throws(()=>listWorkbenchVariants(d,{sizes:[],colors:['Slate']}));});
