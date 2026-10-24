@@ -1,0 +1,2 @@
+import {assertWorkbenchDraft} from './workbench-draft-state.mjs';import {wrapPreviewText} from './preview-text-wrap.mjs';
+export function previewWorkbenchText(d,id,{maxColumns=30,maxLines=6}={}){assertWorkbenchDraft(d);const l=d.layers.find(x=>x.id===id);if(!l||l.kind!=='text')throw new TypeError('WORKBENCH_TEXT_LAYER');const wrapped=wrapPreviewText({text:l.text,maxColumns,maxLines});return Object.freeze({id:l.id,lines:wrapped.lines,truncated:wrapped.truncated,estimatedOnly:true,manufacturingApproved:false});}
