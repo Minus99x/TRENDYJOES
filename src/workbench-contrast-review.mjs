@@ -1,0 +1,2 @@
+import {assertWorkbenchDraft} from './workbench-draft-state.mjs';import {reviewPreviewContrast} from './preview-color-contrast.mjs';
+export function reviewWorkbenchTextContrast(d,id,{background='#ffffff',largeText=false}={}){assertWorkbenchDraft(d);const l=d.layers.find(x=>x.id===id);if(!l||l.kind!=='text')throw new TypeError('WORKBENCH_CONTRAST_LAYER');const a=reviewPreviewContrast({foreground:l.color,background,largeText});return Object.freeze({id:l.id,ratio:a.ratio,passesAA:a.passesAA,minimum:a.minimum,scope:a.scope,manufacturingApproved:false});}
