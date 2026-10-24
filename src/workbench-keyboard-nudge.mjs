@@ -1,0 +1,3 @@
+import {assertWorkbenchDraft,workbenchNumber} from './workbench-draft-state.mjs';import {editWorkbenchLayer} from './workbench-layer-edit.mjs';
+const move=Object.freeze({ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]});
+export function nudgeWorkbenchLayer(d,id,{key,step=1,zoneWidth,zoneHeight}={}){assertWorkbenchDraft(d);const l=d.layers.find(x=>x.id===id),direction=move[key];if(!l||l.locked||!direction)throw new TypeError('WORKBENCH_NUDGE');workbenchNumber(step);workbenchNumber(zoneWidth);workbenchNumber(zoneHeight);const x=l.x+direction[0]*step,y=l.y+direction[1]*step;if(x<0||y<0||x+l.width>zoneWidth||y+l.height>zoneHeight)throw new RangeError('WORKBENCH_NUDGE_ZONE');return editWorkbenchLayer(d,id,{x,y});}
