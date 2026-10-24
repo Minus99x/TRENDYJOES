@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {reviewPreviewTextHeight as run} from '../src/preview-type-height.mjs';
+test('35CL line layout height is estimated, overflow noted',()=>{const a=run({text:'HELLO WORLD',maxColumns:6,maxLines:10,fontSizeMm:4,zoneHeightMm:5});assert.ok(a.estimatedHeightMm>5);assert.equal(a.warning,'TEXT_HEIGHT_OVERFLOW');assert.equal(a.approximate,true);});
+test('35CL rejects unbounded metrics',()=>{for(const o of [{fontSizeMm:Infinity},{lineHeightFactor:0.5},{zoneHeightMm:0}])assert.throws(()=>run({text:'ok',maxColumns:20,maxLines:4,fontSizeMm:4,zoneHeightMm:10,...o}));});
+test('35CL line-count truncation is surfaced',()=>{const o=run({text:'abcdefghij',maxColumns:2,maxLines:2,fontSizeMm:1,zoneHeightMm:30});assert.equal(o.warning,'TEXT_LINE_OVERFLOW');});
