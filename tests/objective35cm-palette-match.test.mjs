@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {matchPreviewPalette as run} from '../src/preview-palette-match.mjs';
+test('35CM nearest slate/oxblood swatch and exact match',()=>{const a=run({color:'#800020',swatches:[{label:'Oxblood',hex:'#800020'},{label:'Slate',hex:'#697D87'}]});assert.equal(a.closestLabel,'Oxblood');assert.equal(a.rgbDistance,0);assert.equal(a.colorManaged,false);});
+test('35CM rejects malformed swatches and ambiguous labels',()=>{for(const swatches of [[{label:'X',hex:'#FFF'}],[{label:'oxblood',hex:'#800020'},{label:'Oxblood',hex:'#000000'}],[{label:'<img>',hex:'#123456'}]])assert.throws(()=>run({color:'#ffffff',swatches}));});
