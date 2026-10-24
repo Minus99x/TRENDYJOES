@@ -1,0 +1,3 @@
+import {assertWorkbenchDraft} from './workbench-draft-state.mjs';import {inspectPreviewArtworkMetadata} from './preview-upload-preflight.mjs';
+/** Before selecting a file, review metadata only; never upload file content or trust extension as a scan. */
+export function reviewWorkbenchUpload(d,id,metadata){assertWorkbenchDraft(d);const l=d.layers.find(x=>x.id===id);if(!l||l.kind!=='artwork')throw new TypeError('WORKBENCH_UPLOAD_ARTWORK');const a=inspectPreviewArtworkMetadata(metadata);return Object.freeze({layerId:l.id,declaredBytes:a.declaredSizeBytes,warnings:a.warnings,uploadAuthorized:false,bytesInspected:false,localOnly:true});}
