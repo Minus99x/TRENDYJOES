@@ -1,0 +1,2 @@
+import {assertWorkbenchDraft,nextWorkbenchDraft} from './workbench-draft-state.mjs';
+export function setWorkbenchLayerFlags(d,id,{visible,locked}={}){assertWorkbenchDraft(d);const l=d.layers.find(x=>x.id===id);if(!l||(![visible,locked].some(x=>typeof x==='boolean'))||[visible,locked].some(x=>x!==undefined&&typeof x!=='boolean'))throw new TypeError('WORKBENCH_FLAGS');return nextWorkbenchDraft(d,{layers:d.layers.map(x=>x.id===id?{...x,visible:visible??x.visible,locked:locked??x.locked}:x)});}
