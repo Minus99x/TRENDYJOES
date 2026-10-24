@@ -1,7 +1,7 @@
 name: TrendyJoes Offline Studio CI
 on:
   push:
-    branches: [dev/universal-studio-migration]
+    branches: ['dev/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -23,4 +23,4 @@ jobs:
       - name: Check protected static preview asset integrity
         run: npm run preview:static:assets:check
       - name: Execute bounded Studio security and manufacturing regressions
-        run: node --test --test-concurrency=4 tests/objective35b*.test.mjs
+        run: node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
