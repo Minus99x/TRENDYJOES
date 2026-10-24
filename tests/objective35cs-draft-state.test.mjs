@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {makeWorkbenchDraft,assertWorkbenchDraft,nextWorkbenchDraft,workbenchId} from '../src/workbench-draft-state.mjs';
+test('35CS creates immutable local-only empty draft',()=>{const d=makeWorkbenchDraft({productId:'tumbler',surfaceIds:['front','wrap']});assert.equal(d.activeSurface,'front');assert.equal(d.layers.length,0);assert.equal(d.manufacturingApproved,false);assert.ok(Object.isFrozen(d));assertWorkbenchDraft(d);assert.equal(nextWorkbenchDraft(d,{activeSurface:'wrap'}).revision,1);});
+test('35CS rejects invalid surfaces and context',()=>{assert.throws(()=>makeWorkbenchDraft({productId:'tumbler',surfaceIds:['front','front']}));assert.throws(()=>workbenchId('../bad'));assert.throws(()=>assertWorkbenchDraft({...makeWorkbenchDraft({productId:'abc'}),checkoutEnabled:true}));});
