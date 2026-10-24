@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {reviewRotatedPreview as run} from '../src/preview-rotation-footprint.mjs';
+test('35CI quarter turn swaps footprint and can exceed safe area',()=>{const a=run({centerX:50,centerY:50,width:90,height:10,angleDegrees:90,zoneWidth:100,zoneHeight:100,margin:10});assert.ok(Math.abs(a.boundingWidth-10)<1e-8);assert.equal(a.warning,'INSIDE_MARGIN');const b=run({centerX:50,centerY:50,width:110,height:10,angleDegrees:90,zoneWidth:100,zoneHeight:100});assert.equal(b.warning,'OUTSIDE_ZONE');});
+test('35CI rotation never approves manufacturing',()=>{assert.equal(run({centerX:5,centerY:5,width:2,height:2,angleDegrees:0,zoneWidth:10,zoneHeight:10}).manufacturingApproved,false);});
+test('35CI invalid angle, coercible numbers, broken margins denied',()=>{for(const o of [{angleDegrees:Infinity},{angleDegrees:'90'},{margin:6},{width:-1}])assert.throws(()=>run({centerX:5,centerY:5,width:2,height:2,zoneWidth:10,zoneHeight:10,angleDegrees:0,...o}));});
