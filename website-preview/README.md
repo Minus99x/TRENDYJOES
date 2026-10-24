@@ -32,3 +32,26 @@ Run `python verify_preview.py` with the installed Chromium + Playwright. This mo
 - Verify supplier blanks, product dimensions, applicable printing methods, inventory, prices and physical output.
 - Test Shopify products, cart, orders, checkout, and mobile storefront end-to-end in staging before promotion.
 - Do not publish or disable password protection without explicit approval.
+
+## Development continuation — October 24, 2026, Batch 2
+
+This batch fixes a **verified data-loss-in-navigation defect** in the private preview: switching Front / Back / Side or product concepts previously cleared the editor. This private preview now retains drafts for every product+surface, and undo/redo preserves those transitions. It does not modify Shopify staging files.
+
+Additional tested editor functions:
+- Portable concept JSON v2 exports the current canvas and all designed product/surface canvases; secure local JSON import (including v1 migration) restores multiple surfaces.
+- Strict draft validation rejects malformed artwork, oversized files, duplicate IDs, invalid canvas keys and forged `manufacturingApproved`, `priceApproved`, or `checkoutEnabled` claims.
+- Browser-local project brief export identifies each personalized surface but is **not** a printer's production file or order.
+- Selected-layer rotation, image scaling and keyboard arrow movement (Shift + arrows for larger movement) improve the actual Studio controls.
+- Current review displays the number of designed surfaces. Review must be rerun after any editor change.
+
+### Regression evidence
+
+- `verify_preview.py`: previously supported browser operations checked again against the **new standalone bundle**, PASS.
+- `verify_20261024_advance.py`: 30 new Chromium acceptance checks, PASS. Includes cross-product/multi-surface editing, undo/redo, JSON export and reimport, backward-compatible import, injection of a false manufacturing approval flag, local save/load, PNG artwork handling, mobile menu and no horizontal overflow, zero page JavaScript errors.
+- `advance-test-results.json`: exact machine-readable outcomes.
+- `advance-studio-mobile.png`: current mobile concept Studio screenshot showing actual controls and preview, not an old mockup.
+- CDN imagery was not verified to load in the offline Chromium execution environment; source HTML references the original approved Shopify asset URLs.
+
+### Business-critical remaining blockers
+
+This is not a production-ready Shopify implementation. Product details, real supplier print templates, calibration, variant availability, inventory, pricing, checkout, order transmission, customer upload retention, hosted site/browser tests, and Shopify staging integration remain unverified or unavailable. No paid services, Shopify theme edits, publication, or order flows were performed by Batch 2. The published Horizon theme remains untouched.
