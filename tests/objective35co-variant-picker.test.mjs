@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {buildPreviewVariantChoices as run} from '../src/preview-variant-picker.mjs';
+test('35CO enumerates apparel variants without commerce assumptions',()=>{const o=run({sizes:['S','M'],colors:['Oxblood','Slate'],surfaces:['Front','Back']});assert.equal(o.count,8);assert.equal(o.choices[7].surface,'Back');assert.equal(o.inventoryVerified,false);assert.ok(!Object.hasOwn(o.choices[0],'sku'));});
+test('35CO bounded variant matrix and duplicate case denied',()=>{assert.throws(()=>run({sizes:['S','s'],colors:['Blue'],surfaces:['Front']}));assert.throws(()=>run({sizes:Array.from({length:12},(_,i)=>`S${i}`),colors:Array.from({length:12},(_,i)=>`C${i}`),surfaces:['A','B']}));});
