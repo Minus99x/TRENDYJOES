@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {fitPreviewArtwork} from '../src/preview-layout-fit.mjs';
+test('35CA center contained artwork without losing aspect ratio',()=>{const r=fitPreviewArtwork({sourceWidth:200,sourceHeight:100,zoneWidth:100,zoneHeight:100});assert.deepEqual([r.x,r.y,r.width,r.height,r.cropped],[0,25,100,50,false]);assert.equal(r.manufacturingApproved,false);assert.ok(Object.isFrozen(r));});
+test('35CA cropping is explicit in cover mode',()=>{const r=fitPreviewArtwork({sourceWidth:200,sourceHeight:100,zoneWidth:100,zoneHeight:100,mode:'cover'});assert.deepEqual([r.x,r.y,r.width,r.height,r.cropped],[-50,0,200,100,true]);});
+test('35CA refuse malformed or coercible dimensions',()=>{for(const change of [{sourceWidth:'200'},{sourceHeight:0},{zoneWidth:Infinity},{zoneHeight:NaN},{mode:'stretch'},{sourceWidth:1e100}])assert.throws(()=>fitPreviewArtwork({sourceWidth:200,sourceHeight:100,zoneWidth:100,zoneHeight:100,...change}),/PREVIEW_FIT/);});
