@@ -165,5 +165,5 @@ $('clear-draft').addEventListener('click',()=>{snapshot();state={product:0,surfa
 // Copyable inquiry brief. No network submission, identity collection, or invented contact details.
 $('inquiry').addEventListener('submit',e=>{e.preventDefault();const name=$('inquiry-name').value.trim().slice(0,80),product=$('inquiry-product').value,detail=$('inquiry-detail').value.trim().slice(0,3000);$('inquiry-result').textContent=`TREN DYJOES DESIGN WORKS — PROJECT INQUIRY\nName: ${name||'(not provided)'}\nProduct: ${product}\nConcept:\n${detail||'(not provided)'}\n\nPrepared locally. Not sent.`.replace('TREN DYJOES','TRENDYJOES')});
 $('copy-inquiry').addEventListener('click',async()=>{const data=$('inquiry-result').textContent;try{await navigator.clipboard.writeText(data);$('copy-inquiry').textContent='Copied'}catch(_){const el=$('inquiry-result');const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r);$('copy-inquiry').textContent='Select and copy text above'}});
-restoreRecovery();render();route();
+restoreRecovery();render();route(location.hash!=='');
 })();

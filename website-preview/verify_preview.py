@@ -11,20 +11,27 @@ def preview_html():
  assert html.count('<script src="app.js" defer></script>')==1
  assert '</script>' not in app
  return html.replace('<link rel="stylesheet" href="styles.css">','<style>\n'+css+'\n</style>').replace('<script src="app.js" defer></script>','<script>\n'+app+'\n</script>')
-def load_preview(page):
+def load_preview(page,url='http://preview.test/'):
  html=preview_html()
  page.route('http://preview.test/**',lambda route:route.fulfill(status=200,content_type='text/html',body=html))
  page.route('https://cdn.shopify.com/**',lambda route:route.abort())
- page.goto('http://preview.test/',wait_until='domcontentloaded')
+ page.goto(url,wait_until='domcontentloaded')
 with sync_playwright() as p:
  b=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
  desktop=b.new_page(viewport={'width':1440,'height':980}, device_scale_factor=1)
  desktop.on('pageerror',lambda e:js.append(str(e)))
  load_preview(desktop)
+ assert desktop.evaluate('document.activeElement===document.body'),'Initial homepage should not steal focus'
  desktop.wait_for_timeout(750)
  assert desktop.get_by_role('heading',name='Custom goods with character. Crafted to stand apart.').count()==1
  assert desktop.locator('#home-cards .collection-card').count()==6
  desktop.screenshot(path=str(ROOT/'desktop-preview.png'),full_page=True,animations='disabled')
+ deep_link=b.new_page(viewport={'width':1440,'height':980})
+ deep_link.on('pageerror',lambda e:js.append('deep link '+str(e)))
+ load_preview(deep_link,'http://preview.test/#studio')
+ deep_link.wait_for_function("document.activeElement===document.querySelector('[data-page=\"studio\"] h1')")
+ assert deep_link.locator('[data-page=studio]').is_visible()
+ deep_link.close()
  desktop.get_by_role('link',name='Enter the Studio').first.click()
  desktop.wait_for_function("document.querySelector('[data-page=studio]').hidden===false")
  assert desktop.locator('[data-page=studio]').is_visible()
