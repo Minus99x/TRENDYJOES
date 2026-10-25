@@ -57,16 +57,46 @@ with sync_playwright() as p:
  desktop.locator('#inquiry-detail').fill('Personalized printing project')
  desktop.locator('#inquiry button[type=submit]').click()
  assert 'Personalized printing project' in desktop.locator('#inquiry-result').inner_text()
+ for route in ('home','collections','studio','about','contact'):
+  desktop.locator(f'#nav a[href="#{route}"]').click()
+  desktop.wait_for_function(f"document.activeElement===document.querySelector('[data-page=\"{route}\"] h1')")
+  assert desktop.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#'+route
+  assert desktop.locator('[data-page]:not([hidden])').count()==1
+  if route=='studio':
+   assert desktop.locator('#layer-list button').count()==3
+ desktop.go_back()
+ desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"about\"] h1')")
+ desktop.go_forward()
+ desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"contact\"] h1')")
+ desktop.evaluate("location.hash='#unsupported-route'")
+ desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"home\"] h1')")
+ assert desktop.locator('[data-page]:not([hidden])').count()==1
+ assert desktop.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#home'
+ desktop.locator('.skip').evaluate('(e)=>e.focus()')
+ desktop.keyboard.press('Enter')
+ desktop.wait_for_function("document.activeElement===document.querySelector('#main')")
+ assert desktop.locator('[data-page=home]').is_visible()
  # Mobile responsive
- mobile=b.new_page(viewport={'width':390,'height':844},device_scale_factor=1,is_mobile=True,has_touch=True)
+ mobile=b.new_page(viewport={'width':375,'height':844},device_scale_factor=1,is_mobile=True,has_touch=True)
  mobile.on('pageerror',lambda e:js.append('mobile '+str(e)))
  mobile.set_content((ROOT/'TrendyJoes_Approved_Interactive_Preview.html').read_text(),wait_until='domcontentloaded');mobile.wait_for_timeout(600)
  mobile.screenshot(path=str(ROOT/'mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.locator('.menu-toggle').is_visible()
  mobile.locator('.menu-toggle').click()
+ assert mobile.locator('#menu-toggle').get_attribute('aria-expanded')=='true'
  assert mobile.locator('#nav').evaluate('(e)=>getComputedStyle(e).display')=='flex'
+ mobile.locator('#nav a[href="#studio"]').focus()
+ mobile.keyboard.press('Escape')
+ assert mobile.locator('#menu-toggle').get_attribute('aria-expanded')=='false'
+ assert mobile.locator('#nav').evaluate('(e)=>getComputedStyle(e).display')=='none'
+ assert mobile.evaluate("document.activeElement===document.querySelector('#menu-toggle')")
+ mobile.keyboard.press('Escape')
+ assert mobile.evaluate("document.activeElement===document.querySelector('#menu-toggle')")
+ mobile.locator('#menu-toggle').click()
  mobile.locator('#nav').get_by_role('link',name='Custom Studio').click()
- mobile.wait_for_function("document.querySelector('[data-page=studio]').hidden===false")
+ mobile.wait_for_function("document.activeElement===document.querySelector('[data-page=\"studio\"] h1')")
+ assert mobile.locator('#menu-toggle').get_attribute('aria-expanded')=='false'
+ assert mobile.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#studio'
  assert mobile.locator('[data-page=studio]').is_visible()
  mobile.screenshot(path=str(ROOT/'studio-mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+2')
