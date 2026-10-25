@@ -1,0 +1,195 @@
+name: TrendyJoes Autonomous Studio Worker
+
+# Reusable worker isolated from production Shopify themes and main branch.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trendyjoes-studio-single-writer
+  cancel-in-progress: false
+
+jobs:
+  engineer:
+    name: Generate substantive Studio improvement
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    permissions:
+      contents: read
+      copilot-requests: write
+    outputs:
+      has_patch: ${{ steps.candidate.outputs.has_patch }}
+    steps:
+      - name: Checkout approved preview development branch (without write credentials)
+        uses: actions/checkout@v4
+        with:
+          ref: dev/approved-storefront-preview-20261024
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify existing Studio preview before editing
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run preview:assets:check
+          npm run preview:static:assets:check
+          node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
+      - name: Install GitHub Copilot CLI (GitHub-managed token, no custom secret)
+        run: npm install -g @github/copilot
+      - name: Implement and test next unmet functional Studio objective
+        timeout-minutes: 20
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          copilot -p "Perform ONE substantive autonomous engineering iteration for the TrendyJoes Design Works approved private storefront preview. Read website-preview/AUTONOMOUS_OBJECTIVES.md in full, inspect recent commits, actual source and existing tests. Select the highest-priority UNFINISHED acceptance item, or the next independent item if that work is already done or requires Shopify access. Fix a reproducible functional or accessibility defect. Make a meaningful, cohesive and reviewable implementation change AND update a relevant existing browser regression test with positive and negative cases. You may modify only website-preview/app.js, website-preview/index.html, website-preview/styles.css, website-preview/verify_preview.py and website-preview/verify_20261024_advance.py. Preserve approved hero, six collections, Home/Collections/Studio/About/Contact pages, client-side multi-product multi-surface editor, exports and all existing restrictions. Inspect a proven relevant standards-based implementation (WAI-ARIA, HTML/Canvas, WCAG or permissively licensed upstream) and review compatibility and security before adapting; never copy unlicensed code or add dependencies. Do not edit docs or queue, scripts, workflows, Shopify integration, package files, secrets or tests outside the specified browser regression scripts. Never publish a theme, create checkout or payment features, access customer data, make network calls, push, commit, change branch or send an order. You MUST run relevant available Node/Python checks and inspect the diff. If no safe substantive change is possible, leave the worktree clean rather than generating filler commits. Respond with evidence, file names and tests." -s --no-ask-user --allow-tool='read,write,shell(node:*),shell(npm:*),shell(python3:*),shell(git diff:*),shell(git status:*),shell(git log:*)' --deny-tool='shell(git push)' --deny-tool='shell(git commit)'
+      - name: Enforce exact allowlisted paths, real source AND regression test
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --porcelain --untracked-files=all
+          python3 - <<'PYGUARD'
+          import subprocess
+          allowed = {
+            'website-preview/app.js',
+            'website-preview/index.html',
+            'website-preview/styles.css',
+            'website-preview/verify_preview.py',
+            'website-preview/verify_20261024_advance.py',
+          }
+          raw = subprocess.check_output(['git','status','--porcelain','-z','--untracked-files=all'])
+          paths = []
+          for entry in raw.split(b'\0'):
+            if not entry: continue
+            if entry[:2] in (b'R ',b' R',b'C ',b' C') or entry[:1] == b'!':
+              raise SystemExit('Renames/copies/ignored changes are prohibited.')
+            path = entry[3:].decode('utf-8',errors='strict')
+            if path not in allowed: raise SystemExit('Unapproved modified path: '+path)
+            paths.append(path)
+          if paths and (not any(x.endswith(('.js','.html','.css')) for x in paths) or
+                        not any(x.endswith('.py') for x in paths)):
+            raise SystemExit('Reject code-only or test-only change; both must be updated.')
+          print('Allowed changed paths:',paths)
+          PYGUARD
+          git add -N -- website-preview/app.js website-preview/index.html website-preview/styles.css website-preview/verify_preview.py website-preview/verify_20261024_advance.py
+          git diff --check
+          git diff --binary -- website-preview/app.js website-preview/index.html website-preview/styles.css website-preview/verify_preview.py website-preview/verify_20261024_advance.py > candidate.patch
+          if [ -s candidate.patch ]; then
+            echo "has_patch=true" >> "$GITHUB_OUTPUT"
+            echo "Candidate source + test change proposed; separate CI verification required." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "has_patch=false" >> "$GITHUB_OUTPUT"
+            echo "No unverified/filler commits. Unmet objective remains queued." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: steps.candidate.outputs.has_patch == 'true'
+        with:
+          name: trendyjoes-studio-patch
+          path: candidate.patch
+          retention-days: 7
+          if-no-files-found: error
+
+  validate-and-commit:
+    name: Run independent CI and commit only passing improvement to dev
+    needs: engineer
+    if: needs.engineer.outputs.has_patch == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/approved-storefront-preview-20261024
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: trendyjoes-studio-patch
+      - name: Check patch, apply to current dev revision, forbid other paths and modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s candidate.patch
+          if git apply --check --index candidate.patch; then
+            git apply --index candidate.patch
+          else
+            echo "Dev moved; attempting safe 3-way merge; unresolved conflicts fail closed."
+            git apply --3way --index candidate.patch
+          fi
+          python3 - <<'PYGUARD'
+          import subprocess
+          allowed={
+            b'website-preview/app.js',
+            b'website-preview/index.html',
+            b'website-preview/styles.css',
+            b'website-preview/verify_preview.py',
+            b'website-preview/verify_20261024_advance.py',
+          }
+          src=tests=0
+          raw=subprocess.check_output(['git','diff','--cached','--raw','--no-renames','-z']).split(b'\0')
+          for i in range(0,len(raw)-1,2):
+            header,path=raw[i:i+2]
+            if path not in allowed: raise SystemExit('Disallowed staged path: '+repr(path))
+            old_mode,new_mode=header.split()[:2]
+            if old_mode[1:] not in (b'000000',b'100644') or new_mode not in (b'000000',b'100644'):
+              raise SystemExit('Unsupported file mode: '+repr(path))
+            if path.endswith(b'.py'): tests+=1
+            else: src+=1
+          if not src or not tests: raise SystemExit('Require meaningful source and test changes.')
+          PYGUARD
+          git diff --cached --check
+      - name: Run protected asset verification and Studio security tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run preview:assets:check
+          npm run preview:static:assets:check
+          node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
+      - name: Install Chromium browser and Playwright for actual editor acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+      - name: Execute desktop/mobile browser regression scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python website-preview/verify_preview.py
+          python website-preview/verify_20261024_advance.py
+      - name: Commit tested change to development branch only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGIN_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ORIGIN_EVENT: ${{ github.event_name }}
+          ORIGIN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "dev/approved-storefront-preview-20261024"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git diff --cached --quiet && { echo 'No actual change.'; exit 0; }
+          git commit -m 'fix(studio): independently tested autonomous functional improvement' \
+            -m "Origin-Run: $ORIGIN_RUN
+          Origin-Event: $ORIGIN_EVENT
+          Origin-Attempt: $ORIGIN_ATTEMPT
+          Shopify-Live-Edit: none
+          Origin-Chat: not-applicable-GitHub-Actions"
+          gh auth setup-git
+          git push origin HEAD:refs/heads/dev/approved-storefront-preview-20261024
+          echo "Actual verified development commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
