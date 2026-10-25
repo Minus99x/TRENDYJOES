@@ -49,7 +49,7 @@ jobs:
   engineering:
     name: Advance an unmet Studio objective with isolated AI, tests and source receipts
     needs: trigger-receipt
-    uses: Minus99x/TRENDYJOES/.github/workflows/trendyjoes-autonomous-worker.yml@50f5f12daab0c7b43ebe5fa38526e803ef1ef3e8
+    uses: Minus99x/TRENDYJOES/.github/workflows/trendyjoes-autonomous-worker.yml@18bd150435d8da31b6f87097516240b96d8466b7
     permissions:
       contents: write
       copilot-requests: write
