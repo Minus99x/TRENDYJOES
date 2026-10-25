@@ -163,12 +163,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install 'playwright==1.56.0'
+          python -m pip install 'playwright==1.56.0' 'Pillow==11.3.0'
           python -m playwright install --with-deps chromium
       - name: Execute desktop/mobile browser regression scripts
         shell: bash
         run: |
           set -euo pipefail
+          python website-preview/bundle.py
+          test -s website-preview/TrendyJoes_Approved_Interactive_Preview.html
           python website-preview/verify_preview.py
           python website-preview/verify_20261024_advance.py
       - name: Commit tested change to development branch only
