@@ -1,0 +1,55 @@
+name: TrendyJoes Autonomous Studio Engineering
+
+# GitHub itself starts this hourly. It is not a ChatGPT-scheduled task.
+# "Triggered" and "committed code" are distinct, recorded outcomes.
+on:
+  schedule:
+    # :05 Arizona local minute; GitHub scheduled runs can start late.
+    - cron: '5 * * * *'
+  workflow_dispatch:
+  # First creation / approved launcher changes exercise the full worker.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trendyjoes-hourly-engineering.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trendyjoes-autonomous-hourly-launcher
+  cancel-in-progress: false
+
+jobs:
+  trigger-receipt:
+    name: Record independently attested GitHub trigger and pinned worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions: {}
+    steps:
+      - name: Capture actual trigger (not a success claim)
+        shell: bash
+        env:
+          GH_EVENT: ${{ github.event_name }}
+          GH_SCHEDULE: ${{ github.event.schedule }}
+          GH_SHA: ${{ github.sha }}
+          GH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_ATTEMPT: ${{ github.run_attempt }}
+          GH_ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          echo "## TrendyJoes GitHub-native engineering invocation" >> "$GITHUB_STEP_SUMMARY"
+          echo "Event: $GH_EVENT" >> "$GITHUB_STEP_SUMMARY"
+          echo "Schedule: $GH_SCHEDULE" >> "$GITHUB_STEP_SUMMARY"
+          echo "Control SHA: $GH_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: $GH_RUN_URL (attempt $GH_ATTEMPT)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Actor: $GH_ACTOR" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source and actual implementation must be separately tested and committed on the dev branch." >> "$GITHUB_STEP_SUMMARY"
+
+  engineering:
+    name: Advance an unmet Studio objective with isolated AI, tests and source receipts
+    needs: trigger-receipt
+    uses: Minus99x/TRENDYJOES/.github/workflows/trendyjoes-autonomous-worker.yml@50f5f12daab0c7b43ebe5fa38526e803ef1ef3e8
+    permissions:
+      contents: write
+      copilot-requests: write
