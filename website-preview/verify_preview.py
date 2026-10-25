@@ -3,11 +3,24 @@ from pathlib import Path
 import json
 ROOT=Path(__file__).parent
 js=[]
+def preview_html():
+ html=(ROOT/'index.html').read_text()
+ css=(ROOT/'styles.css').read_text()
+ app=(ROOT/'app.js').read_text()
+ assert html.count('<link rel="stylesheet" href="styles.css">')==1
+ assert html.count('<script src="app.js" defer></script>')==1
+ assert '</script>' not in app
+ return html.replace('<link rel="stylesheet" href="styles.css">','<style>\n'+css+'\n</style>').replace('<script src="app.js" defer></script>','<script>\n'+app+'\n</script>')
+def load_preview(page):
+ html=preview_html()
+ page.route('http://preview.test/**',lambda route:route.fulfill(status=200,content_type='text/html',body=html))
+ page.route('https://cdn.shopify.com/**',lambda route:route.abort())
+ page.goto('http://preview.test/',wait_until='domcontentloaded')
 with sync_playwright() as p:
  b=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
  desktop=b.new_page(viewport={'width':1440,'height':980}, device_scale_factor=1)
  desktop.on('pageerror',lambda e:js.append(str(e)))
- desktop.set_content((ROOT/'TrendyJoes_Approved_Interactive_Preview.html').read_text(),wait_until='domcontentloaded')
+ load_preview(desktop)
  desktop.wait_for_timeout(750)
  assert desktop.get_by_role('heading',name='Custom goods with character. Crafted to stand apart.').count()==1
  assert desktop.locator('#home-cards .collection-card').count()==6
@@ -50,6 +63,10 @@ with sync_playwright() as p:
  desktop.wait_for_timeout(500)
  assert desktop.locator('#layer-list button').count()==3
  assert 'Artwork added' in desktop.locator('#editor-status').inner_text()
+ desktop.locator('#surface').select_option('Back')
+ desktop.locator('#text-entry').fill('BACK UNSAVED')
+ desktop.get_by_role('button',name='+ Add text layer').click()
+ desktop.locator('#surface').select_option('Front')
  desktop.locator('.site-header a[href="#contact"]').click()
  desktop.wait_for_function("document.querySelector('[data-page=contact]').hidden===false")
  assert desktop.locator('[data-page=contact]').is_visible()
@@ -68,6 +85,34 @@ with sync_playwright() as p:
  desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"about\"] h1')")
  desktop.go_forward()
  desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"contact\"] h1')")
+ desktop.locator('#nav a[href="#studio"]').click()
+ desktop.wait_for_function("document.querySelector('[data-page=\"studio\"]').hidden===false")
+ desktop.reload(wait_until='domcontentloaded')
+ desktop.wait_for_function("document.querySelector('[data-page=\"studio\"]').hidden===false")
+ desktop.wait_for_function("document.querySelector('#editor-status').textContent.includes('restored')")
+ assert desktop.locator('#layer-list button').count()==3
+ with desktop.expect_download() as d:
+  desktop.get_by_role('button',name='Download design JSON').click()
+ restored=json.loads(Path(d.value.path()).read_text())
+ front=restored['designs']['0:Front']['layers']
+ back=restored['designs']['0:Back']['layers']
+ assert any(layer['type']=='image' and layer['data'].startswith('data:image/png;base64,') for layer in front)
+ assert any(layer['type']=='text' and layer['text']=='BACK UNSAVED' for layer in back)
+ desktop.locator('#surface').select_option('Back')
+ assert desktop.locator('#layer-list button').count()==1
+ assert 'BACK UNSAVED' in desktop.locator('#layer-list').inner_text()
+ desktop.locator('#surface').select_option('Front')
+ desktop.wait_for_timeout(300)
+ desktop.evaluate("""() => sessionStorage.setItem('tj-preview-tab-recovery-v1', JSON.stringify({
+  schema:'tj-design-concept-2026-10-v2', localOnly:true, manufacturingApproved:true,
+  priceApproved:false, checkoutEnabled:false, product:0, surface:'Front', blank:'#52697A',
+  layers:[{id:'forged',type:'text',x:400,y:400,scale:1,rotation:0,color:'#7a2a30',fontSize:34,text:'FORGED'}],
+  designs:{}
+ }))""")
+ desktop.reload(wait_until='domcontentloaded')
+ desktop.wait_for_function("document.querySelector('[data-page=\"studio\"]').hidden===false")
+ desktop.wait_for_function("document.querySelector('#editor-status').textContent.toLowerCase().includes('rejected')")
+ assert desktop.locator('#layer-list button').count()==0
  desktop.evaluate("location.hash='#unsupported-route'")
  desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"home\"] h1')")
  assert desktop.locator('[data-page]:not([hidden])').count()==1
@@ -79,7 +124,7 @@ with sync_playwright() as p:
  # Mobile responsive
  mobile=b.new_page(viewport={'width':375,'height':844},device_scale_factor=1,is_mobile=True,has_touch=True)
  mobile.on('pageerror',lambda e:js.append('mobile '+str(e)))
- mobile.set_content((ROOT/'TrendyJoes_Approved_Interactive_Preview.html').read_text(),wait_until='domcontentloaded');mobile.wait_for_timeout(600)
+ load_preview(mobile);mobile.wait_for_timeout(600)
  mobile.screenshot(path=str(ROOT/'mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.locator('.menu-toggle').is_visible()
  mobile.locator('.menu-toggle').click()
@@ -101,6 +146,6 @@ with sync_playwright() as p:
  mobile.screenshot(path=str(ROOT/'studio-mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+2')
  assert not js,js
- print(json.dumps({'result':'PASS','browser':'Chromium','desktop_pages':'Home, Studio, Contact','mobile_pages':'Home, Studio','editor':'add, duplicate, undo, redo, review, save, load, JSON and PNG export, upload','page_errors':js,'images':'Shopify CDN cannot be reached from container; fallback visual tested'},indent=2))
+ print(json.dumps({'result':'PASS','browser':'Chromium','desktop_pages':'Home, Studio, Contact','mobile_pages':'Home, Studio','editor':'add, duplicate, undo, redo, review, save, load, JSON and PNG export, upload','tab_recovery':'unsaved multi-surface text and artwork survive Studio hash reload','malformed_recovery':'tampered approval state rejected without restoring layers','page_errors':js,'images':'Shopify CDN cannot be reached from container; fallback visual tested'},indent=2))
  upload.unlink(missing_ok=True)
  b.close()

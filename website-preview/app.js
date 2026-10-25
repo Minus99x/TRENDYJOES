@@ -18,8 +18,8 @@ function route(moveFocus=false){const target=location.hash.replace('#','').split
 function cards(target){products.forEach((p,i)=>{const a=document.createElement('a');a.className='collection-card';a.href='#studio';a.dataset.idx=String(i);const frame=document.createElement('span');frame.className='card-image';frame.style.background=`linear-gradient(125deg,${p.color},#211c1e)`;const w=document.createElement('span');w.className='fallback-word';w.textContent=p.name;const img=new Image();img.src=CDN+p.img;img.alt=p.subtitle;img.loading='lazy';img.onerror=()=>img.remove();frame.append(w,img);const label=document.createElement('span');label.className='card-name';label.textContent=p.name;a.append(frame,label);a.addEventListener('click',()=>{selectProduct(i);});target.append(a);});}
 cards($('home-cards'));cards($('collections-cards'));document.querySelectorAll('.image-with-fallback img').forEach(i=>i.onerror=()=>i.classList.add('failed'));
 products.forEach((p,i)=>{const opt=document.createElement('option');opt.value=String(i);opt.textContent=p.display;$('product').append(opt)});
-// Studio layer data are plain objects. Image bytes stay in this tab unless the user explicitly saves locally.
-let sessionDraft=null;const W=800,H=800;const canvas=$('design-canvas'),ctx=canvas.getContext('2d');
+// Studio artwork stays in this tab, with session-only recovery and explicit device drafts.
+let sessionDraft=null;const recoveryKey='tj-preview-tab-recovery-v1';let recoveryTimer=0,recoveryWarning='';const W=800,H=800;const canvas=$('design-canvas'),ctx=canvas.getContext('2d');
 // Each product/surface is an independent concept canvas. Keep all canvases in undo/redo and local exports.
 const defaultBlank='#52697A';
 let state={product:0,surface:'Front',blank:defaultBlank,layers:[],selected:null,designs:{}};
@@ -45,7 +45,9 @@ const nextId=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const clone=s=>JSON.parse(JSON.stringify(s));
 function snapshot(){past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
 function baseLayer(type,extra={}){return {id:nextId(),type,x:400,y:400,scale:1,rotation:0,color:'#7a2a30',...extra};}
-function status(s){$('editor-status').textContent=s;}
+function status(s){$('editor-status').textContent=recoveryWarning?`${s} ${recoveryWarning}`:s;}
+function persistRecovery(){recoveryTimer=0;try{sessionStorage.setItem(recoveryKey,JSON.stringify(safeDraft()));recoveryWarning='';}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your design remains available in this tab.');}}
+function queueRecovery(){clearTimeout(recoveryTimer);recoveryTimer=setTimeout(persistRecovery,250);}
 function selected(){return state.layers.find(l=>l.id===state.selected)}
 function colorControls(){const s=selected();$('font-size').disabled=!s||s.type!=='text';$('layer-color').disabled=!s||s.type!=='text';$('layer-angle').disabled=!s;$('layer-scale').disabled=!s||s.type!=='image';if(s){$('layer-angle').value=s.rotation;$('layer-angle-display').textContent=s.rotation+'°';$('layer-scale').value=s.scale*100;$('layer-scale-display').textContent=Math.round(s.scale*100)+'%';}if(s&&s.type==='text'){$('font-size').value=s.fontSize;$('font-size-display').value=s.fontSize;$('font-size-display').textContent=s.fontSize;$('layer-color').value=s.color;}}
 function drawProduct(){ctx.save();ctx.translate(0,0);ctx.fillStyle='#eee5d5';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#bfad9a';ctx.setLineDash([5,7]);ctx.lineWidth=2;ctx.strokeRect(60,60,680,680);ctx.setLineDash([]);ctx.lineJoin='round';ctx.strokeStyle='#47383b';ctx.lineWidth=9;ctx.fillStyle=state.blank;const p=state.product;
@@ -61,7 +63,7 @@ function drawProduct(){ctx.save();ctx.translate(0,0);ctx.fillStyle='#eee5d5';ctx
 function drawLayers(){state.layers.forEach(l=>{ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.rotation*Math.PI/180);ctx.globalAlpha=1;let w=180,h=60;if(l.type==='text'){const fs=l.fontSize||36;ctx.font=`bold ${fs}px Georgia, serif`;const words=(l.text||'').split('\n').slice(0,3);w=Math.max(18,...words.map(x=>ctx.measureText(x).width));h=fs*1.28*words.length;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=l.color||'#7a2a30';words.forEach((s,i)=>ctx.fillText(s,0,(i-(words.length-1)/2)*fs*1.28,440));}
  else if(l.type==='image'&&l.data){const img=imageCache.get(l.id);if(img?.complete&&img.naturalWidth){const scale=Math.min(280/img.naturalWidth,240/img.naturalHeight);w=img.naturalWidth*scale*l.scale;h=img.naturalHeight*scale*l.scale;ctx.drawImage(img,-w/2,-h/2,w,h)}else{w=160;h=110;ctx.fillStyle='#c6b2a2';ctx.fillRect(-80,-55,160,110);}}
  if(state.selected===l.id){ctx.strokeStyle='#f7e7c8';ctx.lineWidth=6;ctx.setLineDash([9,7]);ctx.strokeRect(-w/2-6,-h/2-6,w+12,h+12);ctx.strokeStyle='#812e34';ctx.lineWidth=2;ctx.strokeRect(-w/2-6,-h/2-6,w+12,h+12);}ctx.restore()})}
-function render(){drawProduct();drawLayers();$('preview-title').textContent=products[state.product].display;$('surface-label').textContent=state.surface.toUpperCase();$('position-readout').textContent=`${state.layers.length} current · ${draftSummary().length} designed surface(s)`;$('surface-summary').textContent=draftSummary().join(' | ')||'No surfaces personalized yet.';$('product').value=String(state.product);$('surface').value=state.surface;$('blank').value=state.blank;const list=$('layer-list');list.replaceChildren();state.layers.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(l.type==='text'?'T':'▣')+' · '+(l.type==='text'?(l.text||'Text').slice(0,25):l.filename||'Artwork');b.setAttribute('aria-pressed',String(l.id===state.selected));b.addEventListener('click',()=>{state.selected=l.id;render()});list.prepend(b)});if(!state.layers.length){const p=document.createElement('p');p.className='fineprint';p.textContent='Add wording or artwork to begin.';list.append(p)}colorControls()}
+function render(){drawProduct();drawLayers();$('preview-title').textContent=products[state.product].display;$('surface-label').textContent=state.surface.toUpperCase();$('position-readout').textContent=`${state.layers.length} current · ${draftSummary().length} designed surface(s)`;$('surface-summary').textContent=draftSummary().join(' | ')||'No surfaces personalized yet.';$('product').value=String(state.product);$('surface').value=state.surface;$('blank').value=state.blank;const list=$('layer-list');list.replaceChildren();state.layers.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(l.type==='text'?'T':'▣')+' · '+(l.type==='text'?(l.text||'Text').slice(0,25):l.filename||'Artwork');b.setAttribute('aria-pressed',String(l.id===state.selected));b.addEventListener('click',()=>{state.selected=l.id;render()});list.prepend(b)});if(!state.layers.length){const p=document.createElement('p');p.className='fineprint';p.textContent='Add wording or artwork to begin.';list.append(p)}colorControls();queueRecovery()}
 function selectProduct(i){if(!Number.isInteger(i)||i<0||i>=products.length)return;snapshot();rememberCanvas();openCanvas(i,state.surface);status(`${products[i].display} selected. Previously designed surfaces are retained.`)}
 $('product').addEventListener('change',e=>selectProduct(Number(e.target.value)));
 $('surface').addEventListener('change',e=>{const target=e.target.value;if(!['Front','Back','Side'].includes(target))return;snapshot();rememberCanvas();openCanvas(state.product,target);status(`${target} design opened; other surfaces remain saved in this concept.`)});
@@ -122,6 +124,16 @@ function readDraft(raw){
  if(JSON.stringify(designs).length>14500000)throw Error('Too much artwork');
  return {...d,designs};
 }
+function restoreRecovery(){
+ let raw;
+ try{raw=sessionStorage.getItem(recoveryKey)}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your current design is unchanged.');return}
+ if(!raw)return;
+ try{
+  const d=readDraft(raw);state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
+  restoreImages();status('Unsaved Studio work restored in this tab.');
+ }catch(_){recoveryWarning='Previous tab recovery was rejected; the current design is unchanged.';status('Unsaved Studio recovery could not be restored.');}
+}
+window.addEventListener('pagehide',()=>{if(recoveryTimer){clearTimeout(recoveryTimer);persistRecovery()}});
 $('import-json').addEventListener('change',async e=>{
  const file=e.target.files?.[0];e.target.value='';if(!file)return;
  if(file.size>15000000||file.size===0){status('Concept file rejected: maximum 15MB.');return;}
@@ -153,5 +165,5 @@ $('clear-draft').addEventListener('click',()=>{snapshot();state={product:0,surfa
 // Copyable inquiry brief. No network submission, identity collection, or invented contact details.
 $('inquiry').addEventListener('submit',e=>{e.preventDefault();const name=$('inquiry-name').value.trim().slice(0,80),product=$('inquiry-product').value,detail=$('inquiry-detail').value.trim().slice(0,3000);$('inquiry-result').textContent=`TREN DYJOES DESIGN WORKS — PROJECT INQUIRY\nName: ${name||'(not provided)'}\nProduct: ${product}\nConcept:\n${detail||'(not provided)'}\n\nPrepared locally. Not sent.`.replace('TREN DYJOES','TRENDYJOES')});
 $('copy-inquiry').addEventListener('click',async()=>{const data=$('inquiry-result').textContent;try{await navigator.clipboard.writeText(data);$('copy-inquiry').textContent='Copied'}catch(_){const el=$('inquiry-result');const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r);$('copy-inquiry').textContent='Select and copy text above'}});
-render();route();
+restoreRecovery();render();route();
 })();

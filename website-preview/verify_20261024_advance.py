@@ -7,6 +7,19 @@ import json, tempfile
 from PIL import Image
 ROOT=Path(__file__).parent
 report={'suite':'TrendyJoes private preview / multi-surface regression','checks':[],'browserErrors':[]}
+def preview_html():
+ html=(ROOT/'index.html').read_text()
+ css=(ROOT/'styles.css').read_text()
+ app=(ROOT/'app.js').read_text()
+ assert html.count('<link rel="stylesheet" href="styles.css">')==1
+ assert html.count('<script src="app.js" defer></script>')==1
+ assert '</script>' not in app
+ return html.replace('<link rel="stylesheet" href="styles.css">','<style>\n'+css+'\n</style>').replace('<script src="app.js" defer></script>','<script>\n'+app+'\n</script>')
+def load_preview(page):
+ html=preview_html()
+ page.route('http://preview.test/**',lambda route:route.fulfill(status=200,content_type='text/html',body=html))
+ page.route('https://cdn.shopify.com/**',lambda route:route.abort())
+ page.goto('http://preview.test/',wait_until='domcontentloaded')
 def verify(statement,label):
  assert statement,label
  report['checks'].append(label); print('PASS:',label,flush=True)
@@ -14,7 +27,7 @@ with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
  page=browser.new_page(viewport={'width':1440,'height':900},accept_downloads=True)
  page.on('pageerror',lambda e: report['browserErrors'].append(str(e)))
- page.set_content((ROOT/'TrendyJoes_Approved_Interactive_Preview.html').read_text(),wait_until='domcontentloaded')
+ load_preview(page)
  page.get_by_role('link',name='Enter the Studio').first.click()
  page.wait_for_timeout(250)
  verify(page.locator('[data-page="studio"]').is_visible(),'Studio opens from approved homepage CTA')
@@ -95,7 +108,7 @@ with sync_playwright() as p:
  # Show real mobile Studio for visual QA.
  mobile=browser.new_page(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,accept_downloads=True)
  mobile.on('pageerror',lambda e: report['browserErrors'].append('mobile: '+str(e)))
- mobile.set_content((ROOT/'TrendyJoes_Approved_Interactive_Preview.html').read_text(),wait_until='domcontentloaded')
+ load_preview(mobile)
  mobile.locator('#menu-toggle').click();mobile.locator('#nav a[href="#studio"]').click();mobile.wait_for_timeout(200)
  verify(mobile.locator('[data-page="studio"]').is_visible(),'Mobile menu navigates to Studio')
  verify(mobile.evaluate('document.documentElement.scrollWidth<=innerWidth+2'),'No horizontal overflow on narrow mobile')
