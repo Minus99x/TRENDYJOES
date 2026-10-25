@@ -1,0 +1,53 @@
+name: TrendyJoes Engineering Self-Healing Observer
+
+# Independent GitHub scheduler/recovery; not a ChatGPT reminder.
+# Always inspect attested run data. Never modify Shopify, main application source,
+# or the audited isolated Copilot worker from recovery events.
+on:
+  workflow_run:
+    workflows:
+      - TrendyJoes Autonomous Studio Engineering
+    types: [completed]
+  schedule:
+    # Safety-net observation after the hourly :05 engineering trigger.
+    - cron: '43 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trendyjoes-self-heal.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: trendyjoes-engineering-self-heal
+  cancel-in-progress: false
+
+jobs:
+  observe-and-recover:
+    name: Attest, retry bounded failure or dispatch missed hour
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Check out trusted main-only observer code (never untrusted workflow code)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Test retry bounds, trust boundaries and missed-occurrence logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s .github/tests -p 'test_trendyjoes_self_heal.py' -v
+      - name: Examine attested GitHub run and take only authorized recovery action
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/trendyjoes_self_heal.py
