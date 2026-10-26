@@ -23,7 +23,7 @@ let sessionDraft=null;const recoveryKey='tj-preview-tab-recovery-v1';let recover
 // Each product/surface is an independent concept canvas. Keep all canvases in undo/redo and local exports.
 const defaultBlank='#52697A';
 let state={product:0,surface:'Front',blank:defaultBlank,layers:[],selected:null,designs:{}};
-let past=[],future=[],drag=null;const imageCache=new Map();let hasReviewed=false,recoveryReady=false,editRevision=0;
+let past=[],future=[],drag=null;const imageCache=new Map();let hasReviewed=false,recoveryReady=false,pendingOperation=null;
 const designKey=(product=state.product,surface=state.surface)=>`${product}:${surface}`;
 function rememberCanvas(){state.designs[designKey()]={blank:state.blank,layers:clone(state.layers)};}
 function openCanvas(product,surface){
@@ -43,7 +43,30 @@ function draftSummary(){
 
 const nextId=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const clone=s=>JSON.parse(JSON.stringify(s));
-function snapshot(){editRevision++;past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
+// Ignore obsolete asynchronous results; a new user intent owns the next commit.
+function cancelPendingOperation(){
+ if(!pendingOperation)return;
+ $(pendingOperation.field).setAttribute('aria-busy','false');
+ pendingOperation=null;$('cancel-load').disabled=true;
+ $('design-report').textContent='Review your current design before export.';
+}
+function beginOperation(field){
+ cancelPendingOperation();
+ const operation={field};pendingOperation=operation;
+ $(field).setAttribute('aria-busy','true');$('cancel-load').disabled=false;
+ hasReviewed=false;$('design-report').textContent='Loading design data. Review after loading finishes.';
+ status('Loading locally. You can cancel or keep editing to discard this load.');
+ return operation;
+}
+function operationCurrent(operation){return pendingOperation===operation;}
+function finishOperation(operation){if(operationCurrent(operation))cancelPendingOperation();}
+function waitForOperation(){
+ if(!pendingOperation)return false;
+ status('Artwork or a draft is still loading. Wait or cancel the load before reviewing, saving or exporting.');return true;
+}
+$('cancel-load').addEventListener('click',()=>{cancelPendingOperation();status('Loading cancelled. Your current design is unchanged.');});
+$('text-entry').addEventListener('input',()=>{if(pendingOperation){cancelPendingOperation();status('Loading cancelled because you started editing.');}});
+function snapshot(){cancelPendingOperation();past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
 function baseLayer(type,extra={}){return {id:nextId(),type,x:400,y:400,scale:1,rotation:0,color:'#7a2a30',...extra};}
 function status(s){$('editor-status').textContent=recoveryWarning?`${s} ${recoveryWarning}`:s;}
 function persistRecovery(){recoveryTimer=0;try{sessionStorage.setItem(recoveryKey,JSON.stringify(safeDraft()));recoveryWarning='';}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your design remains available in this tab.');}}
@@ -76,20 +99,34 @@ $('layer-angle').addEventListener('change',e=>{const l=selected();if(!l)return;s
 $('layer-scale').addEventListener('change',e=>{const l=selected();if(l?.type!=='image')return;snapshot();l.scale=Number(e.target.value)/100;render();status('Artwork scale adjusted.');});
 $('duplicate-layer').addEventListener('click',()=>{const l=selected();if(!l){status('Select a layer first.');return}snapshot();const copy=clone(l);copy.id=nextId();copy.x=Math.min(650,copy.x+25);copy.y=Math.min(650,copy.y+25);state.layers.push(copy);state.selected=copy.id;if(copy.type==='image'&&copy.data)loadArtwork(copy);render();status('Layer duplicated.')});
 $('remove-layer').addEventListener('click',()=>{if(!selected()){status('Select a layer first.');return}snapshot();imageCache.delete(state.selected);state.layers=state.layers.filter(l=>l.id!==state.selected);state.selected=state.layers.at(-1)?.id||null;render();status('Layer removed.')});
-$('undo').addEventListener('click',()=>{if(!past.length){status('No changes to undo.');return}future.push(clone(state));state=past.pop();hasReviewed=false;restoreImages();render();status('Undid the last change.')});
-$('redo').addEventListener('click',()=>{if(!future.length){status('No changes to redo.');return}past.push(clone(state));state=future.pop();hasReviewed=false;restoreImages();render();status('Redid the change.')});
+$('undo').addEventListener('click',()=>{cancelPendingOperation();if(!past.length){status('No changes to undo.');return}future.push(clone(state));state=past.pop();hasReviewed=false;restoreImages();render();status('Undid the last change.')});
+$('redo').addEventListener('click',()=>{cancelPendingOperation();if(!future.length){status('No changes to redo.');return}past.push(clone(state));state=future.pop();hasReviewed=false;restoreImages();render();status('Redid the change.')});
 function loadArtwork(l){if(!l?.data)return;const i=new Image();i.onload=render;i.src=l.data;imageCache.set(l.id,i)}function restoreImages(){imageCache.clear();state.layers.forEach(loadArtwork)}
-$('artwork').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>4*1024*1024){status('Choose PNG, JPEG, or WebP artwork no larger than 4MB.');e.target.value='';return}try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('read failure'));reader.readAsDataURL(file)});await validateImageData(data);snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();status('Artwork added locally; drag to position. Nothing has been uploaded.')}catch(_){status('Artwork could not be read.')}finally{e.target.value=''}});
+$('artwork').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ const operation=beginOperation('artwork');
+ try{
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||!file.size||file.size>4*1024*1024){status('Choose PNG, JPEG, or WebP artwork no larger than 4MB.');return;}
+  const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('read failure'));reader.readAsDataURL(file)});
+  if(!operationCurrent(operation))return;
+  await validateImageData(data);
+  if(!operationCurrent(operation))return;
+  snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});
+  state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();
+  status('Artwork added locally; drag to position. Nothing has been uploaded.');
+ }catch(_){if(operationCurrent(operation))status('Artwork could not be read.');}
+ finally{finishOperation(operation);}
+});
 function inCanvas(evt){const r=canvas.getBoundingClientRect();return {x:(evt.clientX-r.left)/r.width*W,y:(evt.clientY-r.top)/r.height*H}}
 function pick(x,y){return [...state.layers].reverse().find(l=>Math.abs(l.x-x)<(l.type==='image'?125:180)&&Math.abs(l.y-y)<(l.type==='image'?120:55))}
 canvas.addEventListener('keydown',e=>{
  const step=e.shiftKey?10:2;const delta={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];
  if(!delta)return;const l=selected();if(!l)return;e.preventDefault();snapshot();l.x=Math.max(125,Math.min(675,l.x+delta[0]));l.y=Math.max(170,Math.min(650,l.y+delta[1]));render();status(`Layer moved to ${l.x}, ${l.y} (illustrative).`);
 });
-canvas.addEventListener('pointerdown',e=>{const p=inCanvas(e),l=pick(p.x,p.y);if(l){snapshot();state.selected=l.id;drag={id:l.id,dx:p.x-l.x,dy:p.y-l.y,startX:l.x,startY:l.y};canvas.setPointerCapture(e.pointerId);render();status(`Selected ${layerName(l)}. Focus the preview and use arrow keys to move it.`)} });
-canvas.addEventListener('pointermove',e=>{if(!drag)return;let p=inCanvas(e),l=state.layers.find(x=>x.id===drag.id);if(!l)return;l.x=Math.round(Math.max(125,Math.min(675,p.x-drag.dx)));l.y=Math.round(Math.max(170,Math.min(650,p.y-drag.dy)));render()});
+canvas.addEventListener('pointerdown',e=>{const p=inCanvas(e),l=pick(p.x,p.y);if(l){e.preventDefault();canvas.focus({preventScroll:true});snapshot();state.selected=l.id;drag={id:l.id,dx:p.x-l.x,dy:p.y-l.y,startX:l.x,startY:l.y};canvas.setPointerCapture(e.pointerId);render();status(`Selected ${layerName(l)}. Focus the preview and use arrow keys to move it.`)} });
+canvas.addEventListener('pointermove',e=>{if(!drag)return;cancelPendingOperation();let p=inCanvas(e),l=state.layers.find(x=>x.id===drag.id);if(!l)return;l.x=Math.round(Math.max(125,Math.min(675,p.x-drag.dx)));l.y=Math.round(Math.max(170,Math.min(650,p.y-drag.dy)));render()});
 canvas.addEventListener('pointerup',()=>{if(drag){const l=state.layers.find(x=>x.id===drag.id),moved=l&&(l.x!==drag.startX||l.y!==drag.startY);drag=null;if(moved)status(`Moved ${layerName(l)} to ${l.x}, ${l.y}. Review before export.`)}});canvas.addEventListener('pointercancel',()=>{drag=null});
-function review(){const problems=[];if(!state.layers.length)problems.push('No artwork or wording has been added.');for(const l of state.layers){if(l.x<245||l.x>555||l.y<268||l.y>538)problems.push('One or more layers fall outside the conceptual design guide.');if(l.type==='text'&&l.text.length>38)problems.push('A long text layer may not fit a real print zone.')}const data=[`PRODUCT: ${products[state.product].display}`,`SURFACE: ${state.surface}`,`CONCEPT COLOR: ${state.blank}`,`LAYERS: ${state.layers.length}`,`DESIGNED SURFACES: ${draftSummary().length}`,`CHECKS: ${problems.length?problems.join(' | '):'No illustrative placement flags'}`,'PRODUCTION APPROVED: NO','PRICE VERIFIED: NO','CHECKOUT ENABLED: NO'];$('design-report').textContent=data.join('\n');hasReviewed=true;status('Concept review complete. This is not a manufacturing approval.')}
+function review(){if(waitForOperation())return;const problems=[];if(!state.layers.length)problems.push('No artwork or wording has been added.');for(const l of state.layers){if(l.x<245||l.x>555||l.y<268||l.y>538)problems.push('One or more layers fall outside the conceptual design guide.');if(l.type==='text'&&l.text.length>38)problems.push('A long text layer may not fit a real print zone.')}const data=[`PRODUCT: ${products[state.product].display}`,`SURFACE: ${state.surface}`,`CONCEPT COLOR: ${state.blank}`,`LAYERS: ${state.layers.length}`,`DESIGNED SURFACES: ${draftSummary().length}`,`CHECKS: ${problems.length?problems.join(' | '):'No illustrative placement flags'}`,'PRODUCTION APPROVED: NO','PRICE VERIFIED: NO','CHECKOUT ENABLED: NO'];$('design-report').textContent=data.join('\n');hasReviewed=true;status('Concept review complete. This is not a manufacturing approval.')}
 $('review-design').addEventListener('click',review);
 function exportFile(name,blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),7000)}
 function safeDraft(){return {schema:'tj-design-concept-2026-10-v2',localOnly:true,manufacturingApproved:false,priceApproved:false,checkoutEnabled:false,product:state.product,surface:state.surface,blank:state.blank,layers:clone(state.layers),designs:allDesigns()}}
@@ -138,31 +175,41 @@ function readDraft(raw){
  if(JSON.stringify(designs).length>14500000)throw Error('Too much artwork');
  return {...d,designs};
 }
-async function restoreRecovery(){
- let raw;
- try{raw=sessionStorage.getItem(recoveryKey)}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your current design is unchanged.')}
- if(raw){
-  const revision=editRevision;
-  try{
-   const d=readDraft(raw);await validateDraftArtwork(d);
-   if(editRevision!==revision){recoveryWarning='Previous tab recovery was not restored because a new design was started.';status('Your current design is unchanged.');}
-   else{state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};restoreImages();status('Unsaved Studio work restored in this tab.')}
-  }catch(_){recoveryWarning='Previous tab recovery was rejected; the current design is unchanged.';status('Unsaved Studio recovery could not be restored.');}
- }
- recoveryReady=true;render();
+function applyDraft(d){
+ snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
+ drag=null;restoreImages();render();
 }
-window.addEventListener('pagehide',()=>{if(recoveryTimer){clearTimeout(recoveryTimer);persistRecovery()}});
+async function restoreRecovery(){
+ let operation;
+ try{
+  const raw=sessionStorage.getItem(recoveryKey);
+  if(raw){
+   operation=beginOperation('load-draft');
+   const d=readDraft(raw);await validateDraftArtwork(d);
+   if(operationCurrent(operation)){
+    finishOperation(operation);
+    state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
+    restoreImages();status('Unsaved Studio work restored in this tab.');
+   }
+  }
+ }catch(_){
+  if(!operation||operationCurrent(operation)){recoveryWarning='Previous tab recovery was unavailable or rejected; your current design is unchanged.';status('Unsaved Studio recovery could not be restored.');}
+ }finally{if(operation)finishOperation(operation);recoveryReady=true;render();}
+}
+window.addEventListener('pagehide',()=>{cancelPendingOperation();if(recoveryTimer){clearTimeout(recoveryTimer);persistRecovery()}});
 $('import-json').addEventListener('change',async e=>{
  const file=e.target.files?.[0];e.target.value='';if(!file)return;
- if(file.size>15000000||file.size===0){status('Concept file rejected: maximum 15MB.');return;}
+ const operation=beginOperation('import-json');
  try{
-  const raw=await file.text();const d=readDraft(raw);await validateDraftArtwork(d);
-  // Preserve the current editor on any failed input, including tampered approval claims.
-  snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
-  restoreImages();render();status(`Imported ${draftSummary().length} designed surface(s) locally. Nothing was sent to Shopify.`);
- }catch(_){status('Concept file was rejected. Your current work is unchanged.');}
+  if(file.size>15000000||file.size===0){status('Concept file rejected: maximum 15MB.');return;}
+  const raw=await file.text();if(!operationCurrent(operation))return;
+  const d=readDraft(raw);await validateDraftArtwork(d);
+  if(!operationCurrent(operation))return;
+  applyDraft(d);status(`Imported ${draftSummary().length} designed surface(s) locally. Nothing was sent to Shopify.`);
+ }catch(_){if(operationCurrent(operation))status('Concept file was rejected. Your current work is unchanged.');}
+ finally{finishOperation(operation);}
 });
-$('export-brief').addEventListener('click',()=>{
+$('export-brief').addEventListener('click',()=>{if(waitForOperation())return;
  const rows=draftSummary();const text=['TRENDYJOES DESIGN WORKS — CONCEPT REQUEST BRIEF',
  'Not a production order or manufacturing proof.',
  ...rows.map(x=>'• '+x),rows.length?'Review the attached exported design JSON for concept layer details.':'No surfaces designed yet.',
@@ -170,15 +217,20 @@ $('export-brief').addEventListener('click',()=>{
  exportFile('TrendyJoes-custom-project-brief.txt',new Blob([text.join('\n')+'\n'],{type:'text/plain'}));
  status('Downloaded a concept request brief. No order was placed.');
 });
-$('export-json').addEventListener('click',()=>{const b=new Blob([JSON.stringify(safeDraft(),null,2)],{type:'application/json'});exportFile('TrendyJoes-design-concept.json',b);status('Downloaded a concept-only JSON file.')});
-$('export-png').addEventListener('click',()=>{if(!canvas.toBlob){status('This browser cannot export PNG.');return}canvas.toBlob(b=>{if(b){exportFile('TrendyJoes-concept-preview.png',b);status('Downloaded a concept preview PNG.')}else status('PNG export failed.')},'image/png')});
-$('save-draft').addEventListener('click',()=>{const data=JSON.stringify(safeDraft());sessionDraft=data;try{localStorage.setItem('tj-preview-draft-v1',data);status('Draft saved to this device only.')}catch(_){status('Draft saved in this tab only; persistent browser storage is unavailable.')}});
- $('load-draft').addEventListener('click',async()=>{try{
- let raw=sessionDraft;try{raw=localStorage.getItem('tj-preview-draft-v1')||sessionDraft;}catch(_){}
- if(!raw){status('No local saved draft found.');return}
-  const d=readDraft(raw);await validateDraftArtwork(d);snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
- restoreImages();render();status(`Device concept loaded with ${draftSummary().length} designed surface(s).`);
- }catch(_){status('Saved draft was rejected or unavailable. Your current work is unchanged.')}});
+$('export-json').addEventListener('click',()=>{if(waitForOperation())return;const b=new Blob([JSON.stringify(safeDraft(),null,2)],{type:'application/json'});exportFile('TrendyJoes-design-concept.json',b);status('Downloaded a concept-only JSON file.')});
+$('export-png').addEventListener('click',()=>{if(waitForOperation())return;if(!canvas.toBlob){status('This browser cannot export PNG.');return}canvas.toBlob(b=>{if(b){exportFile('TrendyJoes-concept-preview.png',b);status('Downloaded a concept preview PNG.')}else status('PNG export failed.')},'image/png')});
+$('save-draft').addEventListener('click',()=>{if(waitForOperation())return;const data=JSON.stringify(safeDraft());sessionDraft=data;try{localStorage.setItem('tj-preview-draft-v1',data);status('Draft saved to this device only.')}catch(_){status('Draft saved in this tab only; persistent browser storage is unavailable.')}});
+$('load-draft').addEventListener('click',async()=>{
+ const operation=beginOperation('load-draft');
+ try{
+  let raw=sessionDraft;try{raw=localStorage.getItem('tj-preview-draft-v1')||sessionDraft;}catch(_){}
+  if(!raw){status('No local saved draft found.');return;}
+  const d=readDraft(raw);await validateDraftArtwork(d);
+  if(!operationCurrent(operation))return;
+  applyDraft(d);status(`Device concept loaded with ${draftSummary().length} designed surface(s).`);
+ }catch(_){if(operationCurrent(operation))status('Saved draft was rejected or unavailable. Your current work is unchanged.');}
+ finally{finishOperation(operation);}
+});
 $('clear-draft').addEventListener('click',()=>{snapshot();state={product:0,surface:'Front',blank:defaultBlank,layers:[],selected:null,designs:{}};imageCache.clear();$('text-entry').value='MAKE IT YOURS';render();$('design-report').textContent='No review completed.';status('Started a fresh local concept. Saved drafts are untouched.')});
 // Copyable inquiry brief. No network submission, identity collection, or invented contact details.
 $('inquiry').addEventListener('submit',e=>{e.preventDefault();const name=$('inquiry-name').value.trim().slice(0,80),product=$('inquiry-product').value,detail=$('inquiry-detail').value.trim().slice(0,3000);$('inquiry-result').textContent=`TREN DYJOES DESIGN WORKS — PROJECT INQUIRY\nName: ${name||'(not provided)'}\nProduct: ${product}\nConcept:\n${detail||'(not provided)'}\n\nPrepared locally. Not sent.`.replace('TREN DYJOES','TRENDYJOES')});
