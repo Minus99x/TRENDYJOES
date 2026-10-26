@@ -31,6 +31,39 @@ with sync_playwright() as p:
  page.get_by_role('link',name='Enter the Studio').first.click()
  page.wait_for_timeout(250)
  verify(page.locator('[data-page="studio"]').is_visible(),'Studio opens from approved homepage CTA')
+ multiline='FIRST LINE\nSECOND LINE\nTHIRD LINE\nFOURTH LINE'
+ page.evaluate("""() => {
+  window.previewTextLines=[];
+  const fillText=CanvasRenderingContext2D.prototype.fillText;
+  CanvasRenderingContext2D.prototype.fillText=function(text,...args){
+   if(this.canvas.id==='design-canvas')window.previewTextLines.push(text);
+   return fillText.call(this,text,...args);
+  };
+ }""")
+ page.locator('#text-entry').fill(multiline)
+ page.locator('#add-text').click()
+ verify(set(multiline.splitlines()).issubset(set(page.evaluate('window.previewTextLines'))),'Every entered text line is drawn on the canvas')
+ canvas=page.locator('#design-canvas')
+ canvas.evaluate("el=>el.scrollIntoView({block:'center',behavior:'instant'})")
+ box=canvas.bounding_box()
+ fourth_line=(box['x']+400/800*box['width'],box['y']+(380+1.5*34*1.28)/800*box['height'])
+ page.mouse.click(*fourth_line)
+ verify(page.locator('#editor-status').inner_text().startswith('Selected Text layer: FIRST LINE'),'The final multiline row remains selectable on the canvas')
+ invalid_text={
+  'schema':'tj-design-concept-2026-10-v2','localOnly':True,'manufacturingApproved':False,
+  'priceApproved':False,'checkoutEnabled':False,'product':0,'surface':'Front','blank':'#52697A',
+  'layers':[{'id':'oversized','type':'text','x':400,'y':380,'scale':1,'rotation':0,
+   'color':'#7a2a30','fontSize':34,'text':'x'*121}],
+  'designs':{}
+ }
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.json',encoding='utf-8',delete=False) as invalid_file:
+  json.dump(invalid_text,invalid_file)
+  invalid_text_path=Path(invalid_file.name)
+ page.locator('#import-json').set_input_files(str(invalid_text_path))
+ page.wait_for_function("document.querySelector('#editor-status').textContent.toLowerCase().includes('rejected')")
+ verify(page.locator('#layer-list button').count()==1 and 'FOURTH LINE' in page.locator('#layer-list button').get_attribute('aria-label'),'Over-limit imported text is rejected without replacing valid multiline artwork')
+ invalid_text_path.unlink()
+ page.locator('#remove-layer').click()
  page.locator('#text-entry').fill('FRONT DESIGN')
  page.locator('#add-text').click()
  verify(page.locator('#layer-list button').count()==1,'Front text created')
