@@ -39,6 +39,12 @@ jobs:
           npm run preview:assets:check
           npm run preview:static:assets:check
           node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
+      - name: Install isolated browser acceptance toolchain before AI work
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --break-system-packages 'playwright==1.56.0' 'Pillow==11.3.0'
+          python3 -m playwright install --with-deps chromium
       - name: Install GitHub Copilot CLI (GitHub-managed token, no custom secret)
         run: npm install -g @github/copilot
       - name: Implement and test next unmet functional Studio objective
@@ -48,7 +54,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          copilot -p "Perform ONE substantive autonomous engineering iteration for the TrendyJoes Design Works approved private storefront preview. Read website-preview/AUTONOMOUS_OBJECTIVES.md in full, inspect recent commits, actual source and existing tests. Select the highest-priority UNFINISHED acceptance item, or the next independent item if that work is already done or requires Shopify access. Fix a reproducible functional or accessibility defect. Make a meaningful, cohesive and reviewable implementation change AND update a relevant existing browser regression test with positive and negative cases. You may modify only website-preview/app.js, website-preview/index.html, website-preview/styles.css, website-preview/verify_preview.py and website-preview/verify_20261024_advance.py. Preserve approved hero, six collections, Home/Collections/Studio/About/Contact pages, client-side multi-product multi-surface editor, exports and all existing restrictions. Inspect a proven relevant standards-based implementation (WAI-ARIA, HTML/Canvas, WCAG or permissively licensed upstream) and review compatibility and security before adapting; never copy unlicensed code or add dependencies. Do not edit docs or queue, scripts, workflows, Shopify integration, package files, secrets or tests outside the specified browser regression scripts. Never publish a theme, create checkout or payment features, access customer data, make network calls, push, commit, change branch or send an order. You MUST run relevant available Node/Python checks and inspect the diff. If no safe substantive change is possible, leave the worktree clean rather than generating filler commits. Respond with evidence, file names and tests." -s --no-ask-user --allow-tool='read,write,shell(node:*),shell(npm:*),shell(python3:*),shell(git diff:*),shell(git status:*),shell(git log:*)' --deny-tool='shell(git push)' --deny-tool='shell(git commit)'
+          copilot -p "Perform ONE substantive autonomous engineering iteration for the TrendyJoes Design Works approved private storefront preview. Read website-preview/AUTONOMOUS_OBJECTIVES.md in full, inspect recent commits, actual source and existing tests. Select the highest-priority UNFINISHED acceptance item, or the next independent item if that work is already done or requires Shopify access. Fix a reproducible functional or accessibility defect. Make a meaningful, cohesive and reviewable implementation change AND update a relevant existing browser regression test with positive and negative cases. You may modify only website-preview/app.js, website-preview/index.html, website-preview/styles.css, website-preview/verify_preview.py and website-preview/verify_20261024_advance.py. Preserve approved hero, six collections, Home/Collections/Studio/About/Contact pages, client-side multi-product multi-surface editor, exports and all existing restrictions. Inspect a proven relevant standards-based implementation (WAI-ARIA, HTML/Canvas, WCAG or permissively licensed upstream) and review compatibility and security before adapting; never copy unlicensed code or add dependencies. Do not edit docs or queue, scripts, workflows, Shopify integration, package files, secrets or tests outside the specified browser regression scripts. Never publish a theme, create checkout or payment features, access customer data, make network calls, push, commit, change branch or send an order. You MUST run the full installed browser acceptance scripts after any source/test change: python3 website-preview/bundle.py && python3 website-preview/verify_preview.py && python3 website-preview/verify_20261024_advance.py. If drag/movement tests fail, fix the actual pointer/coordinate/undo issue and rerun; do not weaken or discard valid assertions. A previously rejected candidate failed 'Dragging artwork changes its exported position'; inspect that exact behavior before repeating any drag refactor. You MUST run relevant available Node/Python checks and inspect the diff. If no safe substantive change is possible, leave the worktree clean rather than generating filler commits. Respond with evidence, file names and tests." -s --no-ask-user --allow-tool='read,write,shell(node:*),shell(npm:*),shell(python3:*),shell(git diff:*),shell(git status:*),shell(git log:*)' --deny-tool='shell(git push)' --deny-tool='shell(git commit)'
+      - name: Preflight changed source with actual Chromium desktop and mobile regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 website-preview/bundle.py
+          python3 website-preview/verify_preview.py
+          python3 website-preview/verify_20261024_advance.py
       - name: Enforce exact allowlisted paths, real source AND regression test
         id: candidate
         shell: bash
