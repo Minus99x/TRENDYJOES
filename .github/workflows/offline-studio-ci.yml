@@ -48,6 +48,7 @@ jobs:
           cat "$checkdir/baseline.log"
           grep -F 'AssertionError: Late upload cannot attach itself to a different surface' "$checkdir/baseline.log"
       - name: Validate patched desktop and mobile behavior
+        if: always()
         run: |
           set -euo pipefail
           checkdir="$(mktemp -d)"

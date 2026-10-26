@@ -60,6 +60,7 @@ with sync_playwright() as p:
  with page.expect_download() as d:page.locator('#export-json').click()
  dragged=json.loads(Path(d.value.path()).read_text())
  front_layer=next(layer for layer in dragged['layers'] if layer['type']=='text')
+ print('DRAG_EVIDENCE',json.dumps({'layer':front_layer,'canvas':box,'start':start,'end':end,'viewport':page.viewport_size}),flush=True)
  verify(abs(front_layer['x']-470)<=1 and abs(front_layer['y']-410)<=1,'Dragging artwork changes its exported position')
  page.locator('#undo').click()
  with page.expect_download() as d:page.locator('#export-json').click()
