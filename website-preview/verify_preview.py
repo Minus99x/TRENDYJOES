@@ -40,8 +40,16 @@ with sync_playwright() as p:
  desktop.locator('#text-entry').fill('CAPTAIN TEST')
  desktop.get_by_role('button',name='+ Add text layer').click()
  assert desktop.locator('#layer-list button').count()==1
+ layer=desktop.locator('#layer-list button').first
+ assert layer.get_attribute('aria-label')=='Text layer: CAPTAIN TEST'
+ assert desktop.locator('#design-canvas').get_attribute('aria-describedby')=='canvas-hint'
+ assert 'use arrow keys to move the selected layer' in desktop.locator('#canvas-hint').inner_text().lower()
  desktop.get_by_role('button',name='Duplicate').click()
  assert desktop.locator('#layer-list button').count()==2
+ desktop.locator('#layer-list button').nth(1).click()
+ assert desktop.locator('#layer-list button[aria-pressed="true"]').count()==1
+ assert desktop.evaluate("document.activeElement===document.querySelector('#layer-list button[aria-pressed=\"true\"]')")
+ assert 'Selected Text layer: CAPTAIN TEST.' in desktop.locator('#editor-status').inner_text()
  desktop.get_by_role('button',name='Undo').click()
  assert desktop.locator('#layer-list button').count()==1
  desktop.get_by_role('button',name='Redo').click()
@@ -53,6 +61,12 @@ with sync_playwright() as p:
  assert 'saved' in desktop.locator('#editor-status').inner_text().lower()
  desktop.get_by_role('button',name='Start new design').click()
  assert desktop.locator('#layer-list button').count()==0
+ desktop.get_by_role('button',name='Duplicate').click()
+ assert desktop.locator('#layer-list button').count()==0
+ assert 'Select a layer first' in desktop.locator('#editor-status').inner_text()
+ desktop.get_by_role('button',name='Remove').click()
+ assert desktop.locator('#layer-list button').count()==0
+ assert 'Select a layer first' in desktop.locator('#editor-status').inner_text()
  desktop.get_by_role('button',name='Load device draft').click()
  assert desktop.locator('#layer-list button').count()==2
  with desktop.expect_download() as d:
@@ -150,6 +164,19 @@ with sync_playwright() as p:
  assert mobile.locator('#menu-toggle').get_attribute('aria-expanded')=='false'
  assert mobile.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#studio'
  assert mobile.locator('[data-page=studio]').is_visible()
+ mobile.locator('#text-entry').fill('MOBILE LAYER')
+ mobile.locator('#add-text').tap()
+ mobile_layer=mobile.locator('#layer-list button')
+ assert mobile_layer.get_attribute('aria-label')=='Text layer: MOBILE LAYER'
+ mobile_layer.tap()
+ assert mobile.locator('#layer-list button[aria-pressed="true"]').count()==1
+ assert mobile.evaluate("document.activeElement===document.querySelector('#layer-list button[aria-pressed=\"true\"]')")
+ assert 'Selected Text layer: MOBILE LAYER.' in mobile.locator('#editor-status').inner_text()
+ mobile.locator('#remove-layer').tap()
+ assert mobile.locator('#layer-list button').count()==0
+ mobile.locator('#duplicate-layer').tap()
+ assert mobile.locator('#layer-list button').count()==0
+ assert 'Select a layer first' in mobile.locator('#editor-status').inner_text()
  mobile.screenshot(path=str(ROOT/'studio-mobile-preview.png'),full_page=True,animations='disabled')
  assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+2')
  assert not js,js
