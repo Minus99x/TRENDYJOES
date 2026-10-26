@@ -85,8 +85,17 @@ function drawProduct(){ctx.save();ctx.translate(0,0);ctx.fillStyle='#eee5d5';ctx
  ctx.fill();ctx.stroke();ctx.strokeStyle='#efdbc2';ctx.lineWidth=10;ctx.beginPath();if(p===0){ctx.moveTo(338,128);ctx.quadraticCurveTo(400,215,462,128)}else if(p===2){ctx.ellipse(400,188,130,26,0,0,Math.PI*2)}else if(p===1){ctx.moveTo(215,504);ctx.lineTo(611,504)}else {ctx.moveTo(260,270);ctx.lineTo(540,270)}ctx.stroke();
  ctx.save();ctx.strokeStyle='#f7eeceaa';ctx.lineWidth=2;ctx.setLineDash([5,6]);ctx.strokeRect(245,268,310,270);ctx.restore();ctx.restore();}
 function textLayout(l){const lines=(l.text||'').split(/\r\n?|\n/),size=l.fontSize||36;ctx.save();ctx.font=`bold ${size}px Georgia, serif`;const width=Math.max(18,...lines.map(line=>ctx.measureText(line).width));ctx.restore();const scale=Math.min(1,440/width,440/(size*1.28*lines.length));return {lines,size:size*scale,width:width*scale,height:size*1.28*lines.length*scale}}
-function drawLayers(){state.layers.forEach(l=>{ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.rotation*Math.PI/180);ctx.globalAlpha=1;let w=180,h=60;if(l.type==='text'){const layout=textLayout(l);ctx.font=`bold ${layout.size}px Georgia, serif`;w=layout.width;h=layout.height;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=l.color||'#7a2a30';layout.lines.forEach((line,i)=>ctx.fillText(line,0,(i-(layout.lines.length-1)/2)*layout.size*1.28));}
- else if(l.type==='image'&&l.data){const img=imageCache.get(l.id);if(img?.complete&&img.naturalWidth){const scale=Math.min(280/img.naturalWidth,240/img.naturalHeight);w=img.naturalWidth*scale*l.scale;h=img.naturalHeight*scale*l.scale;ctx.drawImage(img,-w/2,-h/2,w,h)}else{w=160;h=110;ctx.fillStyle='#c6b2a2';ctx.fillRect(-80,-55,160,110);}}
+function layerDimensions(l){
+ if(l.type==='text'){const layout=textLayout(l);return {width:layout.width,height:layout.height}}
+ if(l.type==='image'){
+  const img=imageCache.get(l.id);
+  if(img?.complete&&img.naturalWidth){const scale=Math.min(280/img.naturalWidth,240/img.naturalHeight)*l.scale;return {width:img.naturalWidth*scale,height:img.naturalHeight*scale}}
+  return {width:160,height:110};
+ }
+ return {width:180,height:60};
+}
+function drawLayers(){state.layers.forEach(l=>{ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.rotation*Math.PI/180);ctx.globalAlpha=1;const {width:w,height:h}=layerDimensions(l);if(l.type==='text'){const layout=textLayout(l);ctx.font=`bold ${layout.size}px Georgia, serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=l.color||'#7a2a30';layout.lines.forEach((line,i)=>ctx.fillText(line,0,(i-(layout.lines.length-1)/2)*layout.size*1.28));}
+ else if(l.type==='image'&&l.data){const img=imageCache.get(l.id);if(img?.complete&&img.naturalWidth)ctx.drawImage(img,-w/2,-h/2,w,h);else{ctx.fillStyle='#c6b2a2';ctx.fillRect(-w/2,-h/2,w,h);}}
  if(state.selected===l.id){ctx.strokeStyle='#f7e7c8';ctx.lineWidth=6;ctx.setLineDash([9,7]);ctx.strokeRect(-w/2-6,-h/2-6,w+12,h+12);ctx.strokeStyle='#812e34';ctx.lineWidth=2;ctx.strokeRect(-w/2-6,-h/2-6,w+12,h+12);}ctx.restore()})}
 function render(){drawProduct();drawLayers();$('preview-title').textContent=products[state.product].display;$('surface-label').textContent=state.surface.toUpperCase();$('position-readout').textContent=`${state.layers.length} current · ${draftSummary().length} designed surface(s)`;$('surface-summary').textContent=draftSummary().join(' | ')||'No surfaces personalized yet.';$('product').value=String(state.product);$('surface').value=state.surface;$('blank').value=state.blank;const list=$('layer-list');list.replaceChildren();state.layers.forEach((l,i)=>{const b=document.createElement('button');b.type='button';const name=layerName(l);b.textContent=(l.type==='text'?'T':'▣')+' · '+(l.type==='text'?(l.text||'Text').slice(0,25):l.filename||'Artwork');b.setAttribute('aria-label',name);b.setAttribute('aria-pressed',String(l.id===state.selected));b.addEventListener('click',()=>{state.selected=l.id;render();$('layer-list').querySelector('button[aria-pressed="true"]')?.focus({preventScroll:true});status(`Selected ${name}. Focus the preview and use arrow keys to move it.`)});list.prepend(b)});if(!state.layers.length){const p=document.createElement('p');p.className='fineprint';p.textContent='Add wording or artwork to begin.';list.append(p)}colorControls();queueRecovery()}
 function selectProduct(i){if(!Number.isInteger(i)||i<0||i>=products.length)return;snapshot();rememberCanvas();openCanvas(i,state.surface);status(`${products[i].display} selected. Previously designed surfaces are retained.`)}
@@ -119,7 +128,13 @@ $('artwork').addEventListener('change',async e=>{
  finally{finishOperation(operation);}
 });
 function inCanvas(evt){const r=canvas.getBoundingClientRect();return {x:(evt.clientX-r.left)/r.width*W,y:(evt.clientY-r.top)/r.height*H}}
-function pick(x,y){return [...state.layers].reverse().find(l=>{const dx=x-l.x,dy=y-l.y;if(l.type==='text'){const a=-l.rotation*Math.PI/180,localX=dx*Math.cos(a)-dy*Math.sin(a),localY=dx*Math.sin(a)+dy*Math.cos(a),layout=textLayout(l);return Math.abs(localX)<=Math.max(18,layout.width/2)+12&&Math.abs(localY)<=Math.max(18,layout.height/2)+12}return Math.abs(dx)<125&&Math.abs(dy)<120})}
+function hitLayer(l,x,y){
+ const {width,height}=layerDimensions(l),padding=l.type==='text'?12:8;
+ ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.rotation*Math.PI/180);ctx.beginPath();
+ ctx.rect(-width/2-padding,-height/2-padding,width+padding*2,height+padding*2);
+ const hit=ctx.isPointInPath(x,y);ctx.restore();return hit;
+}
+function pick(x,y){return [...state.layers].reverse().find(l=>hitLayer(l,x,y))}
 canvas.addEventListener('keydown',e=>{
  const step=e.shiftKey?10:2;const delta={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];
  if(!delta)return;const l=selected();if(!l)return;e.preventDefault();snapshot();l.x=Math.max(125,Math.min(675,l.x+delta[0]));l.y=Math.max(170,Math.min(650,l.y+delta[1]));render();status(`Layer moved to ${l.x}, ${l.y} (illustrative).`);
