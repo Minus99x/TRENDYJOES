@@ -9,8 +9,9 @@ on:
       - TrendyJoes Autonomous Studio Engineering
     types: [completed]
   schedule:
-    # Safety-net observation after the hourly :05 engineering trigger.
-    - cron: '43 * * * *'
+    # Two independent observer opportunities; GitHub can omit one cron.
+    # The idempotent observer will not duplicate a seen/active launcher run.
+    - cron: '43,53 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
