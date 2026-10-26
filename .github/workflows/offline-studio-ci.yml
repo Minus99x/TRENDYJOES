@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Check out exact revision
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Node.js 22
         uses: actions/setup-node@v4
         with:

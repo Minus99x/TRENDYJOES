@@ -48,6 +48,7 @@ function cancelPendingOperation(){
  if(!pendingOperation)return;
  $(pendingOperation.field).setAttribute('aria-busy','false');
  pendingOperation=null;$('cancel-load').disabled=true;
+ $('design-report').textContent='Review your current design before export.';
 }
 function beginOperation(field){
  cancelPendingOperation();
@@ -64,7 +65,7 @@ function waitForOperation(){
  status('Artwork or a draft is still loading. Wait or cancel the load before reviewing, saving or exporting.');return true;
 }
 $('cancel-load').addEventListener('click',()=>{cancelPendingOperation();status('Loading cancelled. Your current design is unchanged.');});
-$('text-entry').addEventListener('input',cancelPendingOperation);
+$('text-entry').addEventListener('input',()=>{if(pendingOperation){cancelPendingOperation();status('Loading cancelled because you started editing.');}});
 function snapshot(){cancelPendingOperation();past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
 function baseLayer(type,extra={}){return {id:nextId(),type,x:400,y:400,scale:1,rotation:0,color:'#7a2a30',...extra};}
 function status(s){$('editor-status').textContent=recoveryWarning?`${s} ${recoveryWarning}`:s;}
