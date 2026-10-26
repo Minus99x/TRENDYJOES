@@ -4,8 +4,10 @@ name: TrendyJoes Autonomous Studio Engineering
 # "Triggered" and "committed code" are distinct, recorded outcomes.
 on:
   schedule:
-    # :05 Arizona local minute; GitHub scheduled runs can start late.
-    - cron: '5 * * * *'
+    # Two independent, bounded GitHub opportunities at :05 and :35 Arizona time.
+    # GitHub may delay or drop an occurrence; the observer audits :43/:53.
+    # The worker's single-writer concurrency prevents simultaneous dev writes.
+    - cron: '5,35 * * * *'
   workflow_dispatch:
   # First creation / approved launcher changes exercise the full worker.
   push:
