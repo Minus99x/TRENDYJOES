@@ -150,6 +150,82 @@ with sync_playwright() as p:
  page.locator('#import-json').set_input_files(str(malformed_image_path))
  page.wait_for_function("document.querySelector('#editor-status').textContent.toLowerCase().includes('rejected')")
  verify(page.locator('#layer-list button').count()==2 and page.locator('#layer-list button[aria-label^=\"Artwork layer:\"]').count()==1,'Undecodable embedded artwork is rejected without replacing the valid design')
+ # Delay browser I/O deliberately while keeping real file reads and image decoding.
+ # This verifies ownership of results, not timer-dependent network timing.
+ race=browser.new_page(viewport={'width':1440,'height':900},accept_downloads=True)
+ race.on('pageerror',lambda e: report['browserErrors'].append('async: '+str(e)))
+ load_preview(race);race.get_by_role('link',name='Enter the Studio').first.click()
+ race.evaluate("""() => {
+  window.delayedReads=[];window.delayedTexts=[];window.delayedImages=[];
+  window.holdImages=false;window.holdTexts=false;
+  const read=FileReader.prototype.readAsDataURL;
+  FileReader.prototype.readAsDataURL=function(file){delayedReads.push(()=>read.call(this,file));};
+  const text=File.prototype.text;
+  File.prototype.text=function(){return window.holdTexts?new Promise((resolve,reject)=>delayedTexts.push(()=>text.call(this).then(resolve,reject))):text.call(this);};
+  const NativeImage=window.Image,src=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');
+  window.Image=function(){const image=new NativeImage();Object.defineProperty(image,'src',{
+   get(){return src.get.call(image)},set(value){if(window.holdImages)delayedImages.push(()=>src.set.call(image,value));else src.set.call(image,value)}
+  });return image;};
+ }""")
+ def release_read():
+  race.evaluate('delayedReads.shift()()')
+  race.wait_for_timeout(150)
+ def release_images():
+  race.evaluate('holdImages=false;delayedImages.splice(0).forEach(release=>release())')
+  race.wait_for_timeout(150)
+ race.locator('#artwork').set_input_files(str(image_path))
+ race.locator('#surface').select_option('Back');release_read()
+ verify(race.locator('#layer-list button').count()==0,'Late upload cannot attach itself to a different surface')
+ race.locator('#surface').select_option('Front')
+ verify(race.locator('#layer-list button').count()==0,'Cancelled upload creates no hidden layer on its original surface')
+ race.locator('#artwork').set_input_files(str(image_path))
+ verify(race.locator('#artwork').get_attribute('aria-busy')=='true' and race.locator('#cancel-load').is_enabled(),'Pending upload exposes busy state and a working cancellation control')
+ race.locator('#cancel-load').click();release_read()
+ verify(race.locator('#layer-list button').count()==0 and race.locator('#cancel-load').is_disabled(),'Explicit cancellation leaves the design intact after the old reader finishes')
+ race.locator('#artwork').set_input_files(str(image_path))
+ race.locator('#artwork').set_input_files(str(image_path))
+ release_read()
+ verify(race.locator('#artwork').get_attribute('aria-busy')=='true' and race.locator('#layer-list button').count()==0,'Older upload cannot clear the newer upload busy state or add a duplicate')
+ release_read()
+ race.wait_for_function("document.querySelector('#layer-list button')!==null")
+ verify(race.locator('#layer-list button').count()==1,'Newest upload completes exactly once')
+ race.locator('#save-draft').click()
+ race.locator('#text-entry').fill('KEEP NEW WORK');race.locator('#add-text').click()
+ race.evaluate('holdImages=true')
+ race.locator('#load-draft').click()
+ race.wait_for_function('delayedImages.length===1')
+ race.locator('#text-entry').fill('EDIT WHILE LOADING');race.locator('#add-text').click()
+ release_images()
+ verify('KEEP NEW WORK' in race.locator('#layer-list').inner_text() and 'EDIT WHILE LOADING' in race.locator('#layer-list').inner_text(),'Delayed saved draft cannot overwrite newer customer edits')
+ race.evaluate('holdImages=true');race.locator('#load-draft').click()
+ race.wait_for_function('delayedImages.length===1');race.locator('#undo').click();release_images()
+ verify('KEEP NEW WORK' in race.locator('#layer-list').inner_text() and 'EDIT WHILE LOADING' not in race.locator('#layer-list').inner_text(),'Undo invalidates an in-flight saved draft without corrupting history')
+ race.evaluate('holdImages=true');race.locator('#load-draft').click()
+ race.wait_for_function('delayedImages.length===1');race.locator('#redo').click();release_images()
+ verify('EDIT WHILE LOADING' in race.locator('#layer-list').inner_text(),'Redo invalidates an in-flight saved draft')
+ race.evaluate('holdTexts=true');race.locator('#import-json').set_input_files(str(path))
+ race.wait_for_function('delayedTexts.length===1');race.locator('#clear-draft').click()
+ race.evaluate('holdTexts=false;delayedTexts.shift()()');race.wait_for_timeout(150)
+ verify(race.locator('#layer-list button').count()==0,'Late JSON file read cannot resurrect a design after Start new design')
+ race.evaluate('holdTexts=true');race.locator('#import-json').set_input_files(str(path))
+ race.wait_for_function('delayedTexts.length===1')
+ race.locator('#load-draft').click()
+ race.wait_for_function("document.querySelector('#editor-status').textContent.includes('loaded')")
+ race.evaluate('holdTexts=false;delayedTexts.shift()()');race.wait_for_timeout(150)
+ verify(race.locator('#layer-list button').count()==1 and race.locator('#layer-list button').get_attribute('aria-label').startswith('Artwork layer:'),'A newer saved-draft request supersedes an older JSON import')
+ race.locator('#artwork').set_input_files(str(image_path))
+ race.locator('#review-design').click()
+ verify('still loading' in race.locator('#editor-status').inner_text(),'Review waits for pending artwork instead of reporting an incomplete design')
+ downloads=[];race.on('download',lambda d: downloads.append(d))
+ for control in ['export-json','export-png','export-brief','save-draft']:
+  race.locator('#'+control).click()
+  verify('still loading' in race.locator('#editor-status').inner_text(),control+' refuses an incomplete pending design')
+ verify(not downloads,'Pending artwork cannot produce incomplete downloadable files')
+ race.locator('#cancel-load').click();release_read()
+ race.locator('#load-draft').click()
+ race.wait_for_function("document.querySelector('#editor-status').textContent.includes('loaded')")
+ verify(race.locator('#layer-list button').count()==1,'Blocked save preserves the previous complete device draft')
+ race.close()
  # Show real mobile Studio for visual QA.
  mobile=browser.new_page(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,accept_downloads=True)
  mobile.on('pageerror',lambda e: report['browserErrors'].append('mobile: '+str(e)))

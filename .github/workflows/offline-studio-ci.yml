@@ -24,3 +24,32 @@ jobs:
         run: npm run preview:static:assets:check
       - name: Execute bounded Studio security and manufacturing regressions
         run: node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
+      - name: Install browser acceptance dependencies
+        run: |
+          python3 -m pip install 'playwright==1.56.0' 'Pillow==11.3.0'
+          python3 -m playwright install --with-deps chromium
+          browser_path="$(python3 -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          sudo ln -sf "$browser_path" /usr/bin/chromium
+      - name: Demonstrate the previous asynchronous upload regression
+        run: |
+          set -euo pipefail
+          checkdir="$(mktemp -d)"
+          trap 'rm -rf "$checkdir"' EXIT
+          cp -a website-preview/. "$checkdir/"
+          git show 24feb7d7f2cedb793879a576330057314be70299:website-preview/app.js > "$checkdir/app.js"
+          git show 24feb7d7f2cedb793879a576330057314be70299:website-preview/index.html > "$checkdir/index.html"
+          if python3 "$checkdir/verify_20261024_advance.py" > "$checkdir/baseline.log" 2>&1; then
+            cat "$checkdir/baseline.log"
+            echo 'Expected the old implementation to fail the late-upload regression.'
+            exit 1
+          fi
+          cat "$checkdir/baseline.log"
+          grep -F 'AssertionError: Late upload cannot attach itself to a different surface' "$checkdir/baseline.log"
+      - name: Validate patched desktop and mobile behavior
+        run: |
+          set -euo pipefail
+          checkdir="$(mktemp -d)"
+          trap 'rm -rf "$checkdir"' EXIT
+          cp -a website-preview/. "$checkdir/"
+          python3 "$checkdir/verify_preview.py"
+          python3 "$checkdir/verify_20261024_advance.py"
