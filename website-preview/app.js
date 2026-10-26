@@ -23,7 +23,7 @@ let sessionDraft=null;const recoveryKey='tj-preview-tab-recovery-v1';let recover
 // Each product/surface is an independent concept canvas. Keep all canvases in undo/redo and local exports.
 const defaultBlank='#52697A';
 let state={product:0,surface:'Front',blank:defaultBlank,layers:[],selected:null,designs:{}};
-let past=[],future=[],drag=null;const imageCache=new Map();let hasReviewed=false;
+let past=[],future=[],drag=null;const imageCache=new Map();let hasReviewed=false,recoveryReady=false,editRevision=0;
 const designKey=(product=state.product,surface=state.surface)=>`${product}:${surface}`;
 function rememberCanvas(){state.designs[designKey()]={blank:state.blank,layers:clone(state.layers)};}
 function openCanvas(product,surface){
@@ -43,11 +43,11 @@ function draftSummary(){
 
 const nextId=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const clone=s=>JSON.parse(JSON.stringify(s));
-function snapshot(){past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
+function snapshot(){editRevision++;past.push(clone(state));if(past.length>50)past.shift();future=[];hasReviewed=false;$('design-report').textContent='Design changed. Review again before export.';}
 function baseLayer(type,extra={}){return {id:nextId(),type,x:400,y:400,scale:1,rotation:0,color:'#7a2a30',...extra};}
 function status(s){$('editor-status').textContent=recoveryWarning?`${s} ${recoveryWarning}`:s;}
 function persistRecovery(){recoveryTimer=0;try{sessionStorage.setItem(recoveryKey,JSON.stringify(safeDraft()));recoveryWarning='';}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your design remains available in this tab.');}}
-function queueRecovery(){clearTimeout(recoveryTimer);recoveryTimer=setTimeout(persistRecovery,250);}
+function queueRecovery(){if(!recoveryReady)return;clearTimeout(recoveryTimer);recoveryTimer=setTimeout(persistRecovery,250)}
 function selected(){return state.layers.find(l=>l.id===state.selected)}
 function colorControls(){const s=selected();$('font-size').disabled=!s||s.type!=='text';$('layer-color').disabled=!s||s.type!=='text';$('layer-angle').disabled=!s;$('layer-scale').disabled=!s||s.type!=='image';if(s){$('layer-angle').value=s.rotation;$('layer-angle-display').textContent=s.rotation+'°';$('layer-scale').value=s.scale*100;$('layer-scale-display').textContent=Math.round(s.scale*100)+'%';}if(s&&s.type==='text'){$('font-size').value=s.fontSize;$('font-size-display').value=s.fontSize;$('font-size-display').textContent=s.fontSize;$('layer-color').value=s.color;}}
 function drawProduct(){ctx.save();ctx.translate(0,0);ctx.fillStyle='#eee5d5';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#bfad9a';ctx.setLineDash([5,7]);ctx.lineWidth=2;ctx.strokeRect(60,60,680,680);ctx.setLineDash([]);ctx.lineJoin='round';ctx.strokeStyle='#47383b';ctx.lineWidth=9;ctx.fillStyle=state.blank;const p=state.product;
@@ -78,7 +78,7 @@ $('remove-layer').addEventListener('click',()=>{if(!selected()){status('Select a
 $('undo').addEventListener('click',()=>{if(!past.length){status('No changes to undo.');return}future.push(clone(state));state=past.pop();hasReviewed=false;restoreImages();render();status('Undid the last change.')});
 $('redo').addEventListener('click',()=>{if(!future.length){status('No changes to redo.');return}past.push(clone(state));state=future.pop();hasReviewed=false;restoreImages();render();status('Redid the change.')});
 function loadArtwork(l){if(!l?.data)return;const i=new Image();i.onload=render;i.src=l.data;imageCache.set(l.id,i)}function restoreImages(){imageCache.clear();state.layers.forEach(loadArtwork)}
-$('artwork').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>4*1024*1024){status('Choose PNG, JPEG, or WebP artwork no larger than 4MB.');e.target.value='';return}try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('read failure'));reader.readAsDataURL(file)});snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();status('Artwork added locally; drag to position. Nothing has been uploaded.')}catch(_){status('Artwork could not be read.')}finally{e.target.value=''}});
+$('artwork').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>4*1024*1024){status('Choose PNG, JPEG, or WebP artwork no larger than 4MB.');e.target.value='';return}try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('read failure'));reader.readAsDataURL(file)});await validateImageData(data);snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();status('Artwork added locally; drag to position. Nothing has been uploaded.')}catch(_){status('Artwork could not be read.')}finally{e.target.value=''}});
 function inCanvas(evt){const r=canvas.getBoundingClientRect();return {x:(evt.clientX-r.left)/r.width*W,y:(evt.clientY-r.top)/r.height*H}}
 function pick(x,y){return [...state.layers].reverse().find(l=>Math.abs(l.x-x)<(l.type==='image'?125:180)&&Math.abs(l.y-y)<(l.type==='image'?120:55))}
 canvas.addEventListener('keydown',e=>{
@@ -104,6 +104,19 @@ function validLayers(layers){
  }
  return imageBytes<=12000000;
 }
+function validateImageData(data){
+ return new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onload=()=>image.naturalWidth&&image.naturalHeight?resolve():reject(Error('Invalid artwork image'));
+  image.onerror=()=>reject(Error('Invalid artwork image'));
+  image.src=data;
+ });
+}
+async function validateDraftArtwork(draft){
+ const images=new Set(draft.layers.filter(l=>l.type==='image').map(l=>l.data));
+ for(const design of Object.values(draft.designs))for(const layer of design.layers)if(layer.type==='image')images.add(layer.data);
+ for(const data of images)await validateImageData(data);
+}
 function readDraft(raw){
  if(typeof raw!=='string'||raw.length>15000000)throw Error('Draft too large');
  const d=JSON.parse(raw);
@@ -124,21 +137,25 @@ function readDraft(raw){
  if(JSON.stringify(designs).length>14500000)throw Error('Too much artwork');
  return {...d,designs};
 }
-function restoreRecovery(){
+async function restoreRecovery(){
  let raw;
- try{raw=sessionStorage.getItem(recoveryKey)}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your current design is unchanged.');return}
- if(!raw)return;
- try{
-  const d=readDraft(raw);state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
-  restoreImages();status('Unsaved Studio work restored in this tab.');
- }catch(_){recoveryWarning='Previous tab recovery was rejected; the current design is unchanged.';status('Unsaved Studio recovery could not be restored.');}
+ try{raw=sessionStorage.getItem(recoveryKey)}catch(_){recoveryWarning='Refresh recovery is unavailable; keep this tab open to retain your work.';status('Your current design is unchanged.')}
+ if(raw){
+  const revision=editRevision;
+  try{
+   const d=readDraft(raw);await validateDraftArtwork(d);
+   if(editRevision!==revision){recoveryWarning='Previous tab recovery was not restored because a new design was started.';status('Your current design is unchanged.');}
+   else{state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};restoreImages();status('Unsaved Studio work restored in this tab.')}
+  }catch(_){recoveryWarning='Previous tab recovery was rejected; the current design is unchanged.';status('Unsaved Studio recovery could not be restored.');}
+ }
+ recoveryReady=true;render();
 }
 window.addEventListener('pagehide',()=>{if(recoveryTimer){clearTimeout(recoveryTimer);persistRecovery()}});
 $('import-json').addEventListener('change',async e=>{
  const file=e.target.files?.[0];e.target.value='';if(!file)return;
  if(file.size>15000000||file.size===0){status('Concept file rejected: maximum 15MB.');return;}
  try{
-  const raw=await file.text();const d=readDraft(raw);
+  const raw=await file.text();const d=readDraft(raw);await validateDraftArtwork(d);
   // Preserve the current editor on any failed input, including tampered approval claims.
   snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
   restoreImages();render();status(`Imported ${draftSummary().length} designed surface(s) locally. Nothing was sent to Shopify.`);
@@ -155,15 +172,15 @@ $('export-brief').addEventListener('click',()=>{
 $('export-json').addEventListener('click',()=>{const b=new Blob([JSON.stringify(safeDraft(),null,2)],{type:'application/json'});exportFile('TrendyJoes-design-concept.json',b);status('Downloaded a concept-only JSON file.')});
 $('export-png').addEventListener('click',()=>{if(!canvas.toBlob){status('This browser cannot export PNG.');return}canvas.toBlob(b=>{if(b){exportFile('TrendyJoes-concept-preview.png',b);status('Downloaded a concept preview PNG.')}else status('PNG export failed.')},'image/png')});
 $('save-draft').addEventListener('click',()=>{const data=JSON.stringify(safeDraft());sessionDraft=data;try{localStorage.setItem('tj-preview-draft-v1',data);status('Draft saved to this device only.')}catch(_){status('Draft saved in this tab only; persistent browser storage is unavailable.')}});
-$('load-draft').addEventListener('click',()=>{try{
+ $('load-draft').addEventListener('click',async()=>{try{
  let raw=sessionDraft;try{raw=localStorage.getItem('tj-preview-draft-v1')||sessionDraft;}catch(_){}
  if(!raw){status('No local saved draft found.');return}
- const d=readDraft(raw);snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
+  const d=readDraft(raw);await validateDraftArtwork(d);snapshot();state={product:d.product,surface:d.surface,blank:d.blank,layers:clone(d.layers),selected:d.layers.at(-1)?.id||null,designs:clone(d.designs)};
  restoreImages();render();status(`Device concept loaded with ${draftSummary().length} designed surface(s).`);
  }catch(_){status('Saved draft was rejected or unavailable. Your current work is unchanged.')}});
 $('clear-draft').addEventListener('click',()=>{snapshot();state={product:0,surface:'Front',blank:defaultBlank,layers:[],selected:null,designs:{}};imageCache.clear();$('text-entry').value='MAKE IT YOURS';render();$('design-report').textContent='No review completed.';status('Started a fresh local concept. Saved drafts are untouched.')});
 // Copyable inquiry brief. No network submission, identity collection, or invented contact details.
 $('inquiry').addEventListener('submit',e=>{e.preventDefault();const name=$('inquiry-name').value.trim().slice(0,80),product=$('inquiry-product').value,detail=$('inquiry-detail').value.trim().slice(0,3000);$('inquiry-result').textContent=`TREN DYJOES DESIGN WORKS — PROJECT INQUIRY\nName: ${name||'(not provided)'}\nProduct: ${product}\nConcept:\n${detail||'(not provided)'}\n\nPrepared locally. Not sent.`.replace('TREN DYJOES','TRENDYJOES')});
 $('copy-inquiry').addEventListener('click',async()=>{const data=$('inquiry-result').textContent;try{await navigator.clipboard.writeText(data);$('copy-inquiry').textContent='Copied'}catch(_){const el=$('inquiry-result');const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r);$('copy-inquiry').textContent='Select and copy text above'}});
-restoreRecovery();render();route(location.hash!=='');
+restoreRecovery();route(location.hash!=='');
 })();
