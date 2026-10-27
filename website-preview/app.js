@@ -143,7 +143,7 @@ function hitLayer(l,x,y){
 function pick(x,y){return [...state.layers].reverse().find(l=>hitLayer(l,x,y))}
 canvas.addEventListener('keydown',e=>{
  const step=e.shiftKey?10:2;const delta={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];
- if(!delta)return;const l=selected();if(!l)return;e.preventDefault();snapshot();l.x=Math.max(125,Math.min(675,l.x+delta[0]));l.y=Math.max(170,Math.min(650,l.y+delta[1]));render();status(`Layer moved to ${l.x}, ${l.y} (illustrative).`);
+ if(!delta)return;const l=selected();if(!l)return;e.preventDefault();const x=Math.max(125,Math.min(675,l.x+delta[0])),y=Math.max(170,Math.min(650,l.y+delta[1]));if(x===l.x&&y===l.y){status('Layer is at the canvas movement limit.');return}snapshot();l.x=x;l.y=y;render();status(`Layer moved to ${l.x}, ${l.y} (illustrative).`);
 });
 canvas.addEventListener('pointerdown',e=>{const p=inCanvas(e),l=pick(p.x,p.y);if(l){e.preventDefault();canvas.focus({preventScroll:true});const selectedBefore=state.selected;state.selected=l.id;drag={id:l.id,dx:p.x-l.x,dy:p.y-l.y,startX:l.x,startY:l.y,selectedBefore,snapshotted:false};canvas.setPointerCapture(e.pointerId);render();status(`Selected ${layerName(l)}. Focus the preview and use arrow keys to move it.`)} });
 canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=inCanvas(e),l=state.layers.find(x=>x.id===drag.id);if(!l)return;const x=Math.round(Math.max(125,Math.min(675,p.x-drag.dx))),y=Math.round(Math.max(170,Math.min(650,p.y-drag.dy)));if(x===l.x&&y===l.y)return;if(!drag.snapshotted){snapshot(drag.selectedBefore);drag.snapshotted=true}l.x=x;l.y=y;render()});
