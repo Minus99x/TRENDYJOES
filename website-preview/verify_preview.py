@@ -99,6 +99,7 @@ with sync_playwright() as p:
   desktop.locator(f'#nav a[href="#{route}"]').click()
   desktop.wait_for_function(f"document.activeElement===document.querySelector('[data-page=\"{route}\"] h1')")
   assert desktop.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#'+route
+  assert desktop.evaluate('location.hash')=='#'+route
   assert desktop.locator('[data-page]:not([hidden])').count()==1
   if route=='studio':
    assert desktop.locator('#layer-list button').count()==3
@@ -134,8 +135,10 @@ with sync_playwright() as p:
  desktop.wait_for_function("document.querySelector('[data-page=\"studio\"]').hidden===false")
  desktop.wait_for_function("document.querySelector('#editor-status').textContent.toLowerCase().includes('rejected')")
  assert desktop.locator('#layer-list button').count()==0
- desktop.evaluate("location.hash='#unsupported-route'")
+ desktop.evaluate("window.historyLengthBeforeInvalid=history.length;location.hash='#unsupported-route'")
  desktop.wait_for_function("document.activeElement===document.querySelector('[data-page=\"home\"] h1')")
+ assert desktop.evaluate('location.hash')=='#home'
+ assert desktop.evaluate('history.length===window.historyLengthBeforeInvalid+1')
  assert desktop.locator('[data-page]:not([hidden])').count()==1
  assert desktop.locator('[data-nav][aria-current="page"]').get_attribute('href')=='#home'
  desktop.locator('.skip').evaluate('(e)=>e.focus()')
