@@ -135,6 +135,37 @@ with sync_playwright() as p:
  with page.expect_download() as d:page.locator('#export-json').click()
  restored_position=json.loads(Path(d.value.path()).read_text())
  verify(next(layer for layer in restored_position['layers'] if layer['type']=='text')['x']==410,'Undo history remains intact after boundary nudging')
+ page.evaluate("""() => {
+  const canvas=document.querySelector('#design-canvas');
+  window.originalPointerCapture=canvas.setPointerCapture;
+  canvas.setPointerCapture=()=>{};
+  window.emitPreviewPointer=(type,pointerId,x,y,isPrimary)=>{
+   const rect=canvas.getBoundingClientRect();
+   canvas.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId,isPrimary,pointerType:'touch',
+    clientX:rect.left+x/800*rect.width,clientY:rect.top+y/800*rect.height}));
+  };
+ }""")
+ page.evaluate("window.emitPreviewPointer('pointerdown',101,410,380,true)")
+ page.evaluate("window.emitPreviewPointer('pointerdown',202,410,380,false)")
+ page.evaluate("window.emitPreviewPointer('pointermove',202,450,380,false)")
+ page.evaluate("window.emitPreviewPointer('pointerup',202,450,380,false)")
+ page.evaluate("window.emitPreviewPointer('pointercancel',202,450,380,false)")
+ page.evaluate("window.emitPreviewPointer('lostpointercapture',202,450,380,false)")
+ with page.expect_download() as d:page.locator('#export-json').click()
+ secondary_pointer=json.loads(Path(d.value.path()).read_text())
+ secondary_layer=next(layer for layer in secondary_pointer['layers'] if layer['type']=='text')
+ verify(secondary_layer['x']==410 and secondary_layer['y']==380,'Secondary pointer movement and termination cannot alter the active drag')
+ page.evaluate("window.emitPreviewPointer('pointermove',101,430,380,true)")
+ page.evaluate("window.emitPreviewPointer('pointerup',101,430,380,true)")
+ with page.expect_download() as d:page.locator('#export-json').click()
+ primary_pointer=json.loads(Path(d.value.path()).read_text())
+ primary_layer=next(layer for layer in primary_pointer['layers'] if layer['type']=='text')
+ verify(primary_layer['x']==430 and primary_layer['y']==380,'The initiating pointer continues moving artwork after a secondary pointer ends')
+ page.locator('#undo').click()
+ with page.expect_download() as d:page.locator('#export-json').click()
+ primary_undo=json.loads(Path(d.value.path()).read_text())
+ verify(next(layer for layer in primary_undo['layers'] if layer['type']=='text')['x']==410,'Undo restores the position after a guarded multi-pointer drag')
+ page.evaluate("document.querySelector('#design-canvas').setPointerCapture=window.originalPointerCapture;delete window.emitPreviewPointer")
  canvas=page.locator('#design-canvas')
  canvas.evaluate("el=>el.scrollIntoView({block:'center',behavior:'instant'})")
  box=canvas.bounding_box()
