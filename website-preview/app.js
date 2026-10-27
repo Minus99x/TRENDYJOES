@@ -85,6 +85,12 @@ function drawProduct(){ctx.save();ctx.translate(0,0);ctx.fillStyle='#eee5d5';ctx
  ctx.fill();ctx.stroke();ctx.strokeStyle='#efdbc2';ctx.lineWidth=10;ctx.beginPath();if(p===0){ctx.moveTo(338,128);ctx.quadraticCurveTo(400,215,462,128)}else if(p===2){ctx.ellipse(400,188,130,26,0,0,Math.PI*2)}else if(p===1){ctx.moveTo(215,504);ctx.lineTo(611,504)}else {ctx.moveTo(260,270);ctx.lineTo(540,270)}ctx.stroke();
  ctx.save();ctx.strokeStyle='#f7eeceaa';ctx.lineWidth=2;ctx.setLineDash([5,6]);ctx.strokeRect(245,268,310,270);ctx.restore();ctx.restore();}
 function textLayout(l){const lines=(l.text||'').split(/\r\n?|\n/),size=l.fontSize||36;ctx.save();ctx.font=`bold ${size}px Georgia, serif`;const width=Math.max(18,...lines.map(line=>ctx.measureText(line).width));ctx.restore();const scale=Math.min(1,440/width,440/(size*1.28*lines.length));return {lines,size:size*scale,width:width*scale,height:size*1.28*lines.length*scale}}
+function limitText(value,maxLength){
+ const segments=typeof Intl.Segmenter==='function'?new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(value):value;
+ let result='';
+ for(const entry of segments){const part=typeof entry==='string'?entry:entry.segment;if(result.length+part.length>maxLength)break;result+=part}
+ return result;
+}
 function layerDimensions(l){
  if(l.type==='text'){const layout=textLayout(l);return {width:layout.width,height:layout.height}}
  if(l.type==='image'){
@@ -102,7 +108,7 @@ function selectProduct(i){if(!Number.isInteger(i)||i<0||i>=products.length)retur
 $('product').addEventListener('change',e=>selectProduct(Number(e.target.value)));
 $('surface').addEventListener('change',e=>{const target=e.target.value;if(!['Front','Back','Side'].includes(target))return;snapshot();rememberCanvas();openCanvas(state.product,target);status(`${target} design opened; other surfaces remain saved in this concept.`)});
 $('blank').addEventListener('change',e=>{snapshot();state.blank=e.target.value;render();status('Concept blank color updated.')});
-$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}snapshot();const l=baseLayer('text',{text:text.slice(0,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:380+state.layers.length*25});state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
+$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}snapshot();const l=baseLayer('text',{text:limitText(text,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:380+state.layers.length*25});state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
 $('font-size').addEventListener('change',e=>{$('font-size-display').textContent=e.target.value;const l=selected();if(l?.type==='text'){snapshot();l.fontSize=Number(e.target.value);render()}});
 $('layer-color').addEventListener('change',e=>{const l=selected();if(l?.type==='text'){snapshot();l.color=e.target.value;render()}});
 $('layer-angle').addEventListener('change',e=>{const l=selected();if(!l)return;snapshot();l.rotation=Number(e.target.value);render();status('Layer rotation adjusted.');});

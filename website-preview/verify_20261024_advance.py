@@ -64,6 +64,22 @@ with sync_playwright() as p:
  verify(page.locator('#layer-list button').count()==1 and 'FOURTH LINE' in page.locator('#layer-list button').get_attribute('aria-label'),'Over-limit imported text is rejected without replacing valid multiline artwork')
  invalid_text_path.unlink()
  page.locator('#remove-layer').click()
+ unicode_exact='A'*118+'😀'
+ page.locator('#text-entry').fill(unicode_exact);page.locator('#add-text').click()
+ with page.expect_download() as d:page.locator('#export-json').click()
+ unicode_export=json.loads(Path(d.value.path()).read_text())
+ verify(unicode_export['layers'][0]['text']==unicode_exact,'A valid astral Unicode character at the text limit survives export')
+ page.locator('#remove-layer').click()
+ over_limit='B'*119+'😀'
+ page.locator('#text-entry').evaluate('(el,value)=>{el.value=value;el.dispatchEvent(new Event("input",{bubbles:true}))}',over_limit)
+ page.locator('#add-text').click()
+ verify(page.locator('#layer-list button').get_attribute('aria-label')=='Text layer: '+'B'*119,'Over-limit text truncation never leaves half an emoji')
+ page.locator('#remove-layer').click()
+ combining_limit='C'*119+'e\u0301'
+ page.locator('#text-entry').evaluate('(el,value)=>{el.value=value;el.dispatchEvent(new Event("input",{bubbles:true}))}',combining_limit)
+ page.locator('#add-text').click()
+ verify(page.locator('#layer-list button').get_attribute('aria-label')=='Text layer: '+'C'*119,'Over-limit truncation keeps a combining grapheme together')
+ page.locator('#remove-layer').click()
  page.locator('#text-entry').fill('FRONT DESIGN')
  page.locator('#add-text').click()
  verify(page.locator('#layer-list button').count()==1,'Front text created')
