@@ -147,9 +147,22 @@ canvas.addEventListener('keydown',e=>{
 });
 canvas.addEventListener('pointerdown',e=>{if(drag||!e.isPrimary)return;const p=inCanvas(e),l=pick(p.x,p.y);if(l){e.preventDefault();canvas.focus({preventScroll:true});const selectedBefore=state.selected;state.selected=l.id;drag={id:l.id,pointerId:e.pointerId,dx:p.x-l.x,dy:p.y-l.y,startX:l.x,startY:l.y,selectedBefore,snapshotted:false};canvas.setPointerCapture(e.pointerId);render();status(`Selected ${layerName(l)}. Focus the preview and use arrow keys to move it.`)} });
 canvas.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pointerId)return;const p=inCanvas(e),l=state.layers.find(x=>x.id===drag.id);if(!l)return;const x=Math.round(Math.max(125,Math.min(675,p.x-drag.dx))),y=Math.round(Math.max(170,Math.min(650,p.y-drag.dy)));if(x===l.x&&y===l.y)return;if(!drag.snapshotted){snapshot(drag.selectedBefore);drag.snapshotted=true}l.x=x;l.y=y;render()});
-canvas.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pointerId){const l=state.layers.find(x=>x.id===drag.id),moved=l&&(l.x!==drag.startX||l.y!==drag.startY);drag=null;if(moved)status(`Moved ${layerName(l)} to ${l.x}, ${l.y}. Review before export.`)}});
-canvas.addEventListener('pointercancel',e=>{if(drag?.pointerId===e.pointerId)drag=null});
-canvas.addEventListener('lostpointercapture',e=>{if(drag?.pointerId===e.pointerId)drag=null});
+// Pointer cancel/lost capture keeps the last committed coordinates and undo snapshot.
+// Only the initiating pointer may finalize this drag; lost capture after pointerup
+// must not produce a second, misleading announcement.
+function endPointerDrag(e,interrupted=false){
+ if(!drag||e.pointerId!==drag.pointerId)return;
+ const l=state.layers.find(x=>x.id===drag.id);
+ const moved=Boolean(l&&(l.x!==drag.startX||l.y!==drag.startY));
+ drag=null;
+ if(interrupted){
+  if(moved)status(`Movement interrupted; position kept for ${layerName(l)} at ${l.x}, ${l.y}. Review before export.`);
+  else status('Movement interrupted; selection unchanged.');
+ }else if(moved)status(`Moved ${layerName(l)} to ${l.x}, ${l.y}. Review before export.`);
+}
+canvas.addEventListener('pointerup',e=>endPointerDrag(e));
+canvas.addEventListener('pointercancel',e=>endPointerDrag(e,true));
+canvas.addEventListener('lostpointercapture',e=>endPointerDrag(e,true));
 function review(){if(waitForOperation())return;const problems=[];if(!state.layers.length)problems.push('No artwork or wording has been added.');for(const l of state.layers){if(l.x<245||l.x>555||l.y<268||l.y>538)problems.push('One or more layers fall outside the conceptual design guide.');if(l.type==='text'&&l.text.length>38)problems.push('A long text layer may not fit a real print zone.')}const data=[`PRODUCT: ${products[state.product].display}`,`SURFACE: ${state.surface}`,`CONCEPT COLOR: ${state.blank}`,`LAYERS: ${state.layers.length}`,`DESIGNED SURFACES: ${draftSummary().length}`,`CHECKS: ${problems.length?problems.join(' | '):'No illustrative placement flags'}`,'PRODUCTION APPROVED: NO','PRICE VERIFIED: NO','CHECKOUT ENABLED: NO'];$('design-report').textContent=data.join('\n');hasReviewed=true;status('Concept review complete. This is not a manufacturing approval.')}
 $('review-design').addEventListener('click',review);
 function exportFile(name,blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),7000)}
