@@ -406,6 +406,30 @@ with sync_playwright() as p:
  bounded.locator('#surface').select_option('Front')
  verify(bounded.locator('#layer-list button').count()==32,'Adding to another surface preserves the full original surface')
  portable.unlink();bounded.close()
+ # Real decoded image bytes exercise the aggregate serialized-size boundary.
+ import random
+ large_art=ROOT/'test-large-portable.png'
+ Image.frombytes('RGB',(900,900),random.Random(42).randbytes(900*900*3)).save(large_art)
+ sized=browser.new_page(accept_downloads=True)
+ sized.on('pageerror',lambda e: report['browserErrors'].append('sized: '+str(e)))
+ load_preview(sized);sized.get_by_role('link',name='Enter the Studio').first.click()
+ sized.locator('#artwork').set_input_files(str(large_art))
+ sized.wait_for_function("document.querySelectorAll('#layer-list button').length===1")
+ sized.locator('#duplicate-layer').click()
+ verify(sized.locator('#layer-list button').count()==2,'Two large valid images fit the portable draft budget')
+ sized.locator('#duplicate-layer').click()
+ verify(sized.locator('#layer-list button').count()==2 and 'portable design limits' in sized.locator('#editor-status').inner_text(),'Oversized image duplication is rejected before corrupting the draft')
+ sized.locator('#artwork').set_input_files(str(large_art))
+ sized.wait_for_function("document.querySelector('#cancel-load').disabled")
+ verify(sized.locator('#layer-list button').count()==2,'Aggregate artwork upload limits preserve existing layers')
+ with sized.expect_download() as download:sized.locator('#export-json').click()
+ download.value.save_as(str(portable))
+ verify(portable.stat().st_size<=15000000,'Accepted artwork exports within the import file-size limit')
+ sized.locator('#clear-draft').click();sized.locator('#import-json').set_input_files(str(portable))
+ sized.wait_for_function("document.querySelectorAll('#layer-list button').length===2")
+ verify(sized.locator('#layer-list button').count()==2,'Near-limit artwork survives export and decoded re-import')
+ sized.close();large_art.unlink();portable.unlink()
+
  # Show real mobile Studio for visual QA.
  mobile=browser.new_page(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,accept_downloads=True)
  mobile.on('pageerror',lambda e: report['browserErrors'].append('mobile: '+str(e)))
