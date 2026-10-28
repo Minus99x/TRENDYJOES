@@ -272,5 +272,101 @@ $('clear-draft').addEventListener('click',()=>{snapshot();state={product:0,surfa
 // Copyable inquiry brief. No network submission, identity collection, or invented contact details.
 $('inquiry').addEventListener('submit',e=>{e.preventDefault();const name=$('inquiry-name').value.trim().slice(0,80),product=$('inquiry-product').value,detail=$('inquiry-detail').value.trim().slice(0,3000);$('inquiry-result').textContent=`TREN DYJOES DESIGN WORKS — PROJECT INQUIRY\nName: ${name||'(not provided)'}\nProduct: ${product}\nConcept:\n${detail||'(not provided)'}\n\nPrepared locally. Not sent.`.replace('TREN DYJOES','TRENDYJOES')});
 $('copy-inquiry').addEventListener('click',async()=>{const data=$('inquiry-result').textContent;try{await navigator.clipboard.writeText(data);$('copy-inquiry').textContent='Copied'}catch(_){const el=$('inquiry-result');const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r);$('copy-inquiry').textContent='Select and copy text above'}});
+
+// Original TrendyJoes Launch 01 collection: original artwork / preview only.
+// These SVG compositions are local, reviewed presets, NEVER arbitrary customer SVG.
+// Applying one creates a safe PNG canvas layer so existing draft validators remain strict.
+const tjDesigns=[
+ ['F01','Snack Support Club','Funny',['EMOTIONALLY','SUPPORTED BY','SNACKS'],['#F5674C','#FFCD54','#4DBBA9','#6C5296'],'sun'],
+ ['F02','Advanced Overthinking','Funny',['CERTIFIED','OVERTHINKER','(unpaid)'],['#B35B85','#FFB49A','#F6CF54','#503B70'],'stars'],
+ ['F03','Plant Gossip','Funny',['MY PLANTS','KNOW ALL','THE DRAMA'],['#3E9A79','#DA8E49','#C7D962','#38554E'],'flower'],
+ ['F04','Pretty Chaotic','Funny',['A LITTLE','CHAOS','A LOT OF CHARM'],['#A94860','#F2A35F','#F8D88B','#70416A'],'confetti'],
+ ['L01','Favorite Plot Twist','Love',['YOU ARE MY','FAVORITE','PLOT TWIST'],['#CA527F','#FF9D9B','#FFD6A2','#8D5795'],'heart'],
+ ['L02','Love Looks Good','Love',['LOVE LOOKS','GOOD ON YOU'],['#ED7774','#ECBD5E','#83B5C8','#704B8F'],'heart'],
+ ['L03','Soft Hearts Loud Color','Love',['LOUD COLORS','SOFT HEARTS'],['#DE5076','#37A4A0','#F8B851','#6B4DA0'],'stars'],
+ ['L04','More Love Less Laundry','Love',['MORE LOVE','LESS LAUNDRY'],['#EAA66D','#8ABAA0','#D46284','#805078'],'heart'],
+ ['S01','Bloom Sideways','Sweet',['KEEP BLOOMING','EVEN SIDEWAYS'],['#79A88F','#EBC65F','#EE8F83','#7667B2'],'flower'],
+ ['S02','Big Little Magic','Sweet',['LITTLE JOYS','BIG MAGIC'],['#C37DA5','#7FB4AF','#EBB858','#6E74BE'],'stars'],
+ ['C01','Kindness Confetti','Colorful',['SPREAD KINDNESS','LIKE CONFETTI'],['#E86A62','#59A5BB','#E6B94B','#A470AF'],'confetti'],
+ ['C02','Color Outside Ordinary','Colorful',['COLOR OUTSIDE','THE ORDINARY'],['#E37D4F','#75B28B','#E0BA50','#7D73BB'],'rainbow']
+];
+function tjShape(kind,c){
+ const pieces=[];let i,a,x,y;
+ if(kind==='heart')return '<path d="M600 410 C535 346 427 383 435 478 C442 572 600 640 600 640 C600 640 758 572 765 478 C773 383 665 346 600 410Z" fill="'+c[0]+'"/><path d="M600 458 C570 422 514 438 515 484 C516 530 600 576 600 576 C600 576 684 530 685 484 C686 438 630 422 600 458Z" fill="'+c[2]+'"/>';
+ if(kind==='sun'){
+  for(i=0;i<12;i++)pieces.push('<path d="M600 350 L600 301" transform="rotate('+(i*30)+' 600 450)" stroke="'+c[i%4]+'" stroke-width="17" stroke-linecap="round"/>');
+  return pieces.join('')+'<circle cx="600" cy="450" r="99" fill="'+c[1]+'"/><path d="M566 446q13 17 26 0M611 446q13 17 26 0M563 493q37 34 75 0" fill="none" stroke="'+c[3]+'" stroke-width="12" stroke-linecap="round"/>';
+ }
+ if(kind==='flower'){
+  for(i=0;i<8;i++)pieces.push('<ellipse cx="600" cy="372" rx="42" ry="94" fill="'+c[i%4]+'" transform="rotate('+(i*45)+' 600 450)"/>');
+  return pieces.join('')+'<circle cx="600" cy="450" r="46" fill="'+c[1]+'"/><circle cx="600" cy="450" r="14" fill="'+c[3]+'"/>';
+ }
+ if(kind==='rainbow'){
+  for(i=0;i<4;i++)pieces.push('<path d="M'+(405+i*34)+' 555 A'+(195-i*34)+' '+(195-i*34)+' 0 0 1 '+(795-i*34)+' 555" fill="none" stroke="'+c[i]+'" stroke-width="29" stroke-linecap="round"/>');
+  return pieces.join('');
+ }
+ if(kind==='confetti'){
+  for(i=0;i<38;i++){x=380+i*137%440;y=310+i*89%300;const size=9+i*7%12;pieces.push('<rect x="'+x+'" y="'+y+'" width="'+size+'" height="'+(size*2)+'" rx="4" fill="'+c[i%4]+'" transform="rotate('+(i*57%360)+' '+x+' '+y+')"/>');}
+  return pieces.join('');
+ }
+ const sx=[480,720,560,640,390,810],sy=[365,385,430,525,545,555];
+ for(i=0;i<6;i++){const m=16+i*5,n=20+i*4;pieces.push('<path d="M0 -'+m+'L6 -6L'+n+' 0L6 6L0 '+m+'L-6 6L-'+n+' 0L-6 -6Z" transform="translate('+sx[i]+' '+sy[i]+') rotate('+(i*24)+')" fill="'+c[i%4]+'"/>');}
+ return pieces.join('');
+}
+function tjDesignSVG(d){
+ const c=d[4],lines=d[3],size=Math.max.apply(null,lines.map(x=>x.length))>18?(lines.length===2?82:73):(lines.length===2?100:88);
+ const y=lines.length===2?[720,860]:[705,818,931];
+ const t=lines.map((s,i)=>'<text x="600" y="'+y[i]+'" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-weight="900" font-size="'+size+'" letter-spacing="-2.2" fill="'+c[(i+3)%4]+'">'+s.replaceAll('&','&amp;')+'</text>').join('');
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">'+tjShape(d[5],c)+t+'<path d="M330 1060Q600 1110 870 1060" fill="none" stroke="'+c[0]+'" stroke-width="14" stroke-linecap="round"/><circle cx="600" cy="1128" r="14" fill="'+c[1]+'"/></svg>';
+}
+function tjPreviewDesign(d,button){
+ const product=state.product,surface=state.surface;
+ button.disabled=true;button.textContent='Preparing preview…';
+ const source='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tjDesignSVG(d));
+ const image=new Image();
+ image.onload=()=>{
+  try{
+   if(state.product!==product||state.surface!==surface){status('Product or surface changed; design selection was not applied.');return;}
+   const off=document.createElement('canvas');off.width=800;off.height=1000;
+   const brush=off.getContext('2d');if(!brush)throw Error('2D preview unavailable');
+   brush.drawImage(image,0,0,800,1000);
+   const data=off.toDataURL('image/png');
+   if(data.length>6000000)throw Error('Preview asset exceeds local artwork limit');
+   snapshot();
+   const l=baseLayer('image',{data,filename:d[0]+' — '+d[1]+'.png',x:400,y:410,scale:1});
+   state.layers.push(l);state.selected=l.id;
+   loadArtwork(l);render();
+   status(d[1]+' added to the '+state.surface.toLowerCase()+' of '+products[state.product].display+'. Concept only; no order placed.');
+   $('design-canvas').scrollIntoView({block:'center',behavior:'smooth'});
+  }catch(_){status('This browser could not prepare that design. Your current design remains unchanged.');}
+  finally{button.disabled=false;button.textContent='Try on this product';}
+ };
+ image.onerror=()=>{button.disabled=false;button.textContent='Try on this product';status('Artwork preview unavailable; current design unchanged.');};
+ image.src=source;
+}
+function tjMountCatalog(){
+ const grid=$('tj-design-cards'),counter=$('tj-design-count');if(!grid||!counter)return;
+ for(const d of tjDesigns){
+  const item=document.createElement('article');item.className='tj-design-card';item.dataset.category=d[2];
+  const picture=document.createElement('img');picture.className='tj-design-art';picture.alt=d[1]+': '+d[3].join(' ');
+  picture.loading='lazy';picture.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tjDesignSVG(d));
+  const body=document.createElement('div');body.className='tj-design-copy';
+  const category=document.createElement('small');category.textContent=d[2]+' · '+d[0];
+  const heading=document.createElement('strong');heading.textContent=d[1];
+  const desc=document.createElement('p');desc.textContent=d[3].join(' · ');
+  const action=document.createElement('button');action.type='button';action.className='tj-design-apply';
+  action.textContent='Try on this product';action.setAttribute('aria-label','Preview '+d[1]+' on the currently selected product');
+  action.addEventListener('click',()=>tjPreviewDesign(d,action));
+  body.append(category,heading,desc,action);item.append(picture,body);grid.append(item);
+ }
+ document.querySelectorAll('[data-design-filter]').forEach(filter=>filter.addEventListener('click',()=>{
+  const wanted=filter.dataset.designFilter;let count=0;
+  document.querySelectorAll('[data-design-filter]').forEach(b=>{const active=b===filter;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active))});
+  grid.querySelectorAll('.tj-design-card').forEach(card=>{const visible=wanted==='All'||card.dataset.category===wanted;card.hidden=!visible;if(visible)count++});
+  counter.textContent='Showing '+count+' '+(wanted==='All'?'original':wanted.toLowerCase())+' designs.';
+ }));
+}
+tjMountCatalog();
+
 restoreRecovery();route(location.hash!=='');
 })();
