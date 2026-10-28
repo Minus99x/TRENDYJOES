@@ -24,3 +24,13 @@ jobs:
         run: npm run preview:static:assets:check
       - name: Execute bounded Studio security and manufacturing regressions
         run: node --test --test-concurrency=4 tests/objective35b*.test.mjs tests/objective35c*.test.mjs
+      - name: Install browser verification dependencies
+        run: |
+          pip install playwright==1.56.0 Pillow==11.3.0
+          python3 -m playwright install --with-deps chromium
+          browser_path="$(python3 -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          sudo ln -sf "$browser_path" /usr/bin/chromium
+      - name: Execute browser acceptance
+        run: |
+          python3 website-preview/verify_preview.py
+          python3 website-preview/verify_20261024_advance.py

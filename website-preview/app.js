@@ -108,12 +108,12 @@ function selectProduct(i){if(!Number.isInteger(i)||i<0||i>=products.length)retur
 $('product').addEventListener('change',e=>selectProduct(Number(e.target.value)));
 $('surface').addEventListener('change',e=>{const target=e.target.value;if(!['Front','Back','Side'].includes(target))return;snapshot();rememberCanvas();openCanvas(state.product,target);status(`${target} design opened; other surfaces remain saved in this concept.`)});
 $('blank').addEventListener('change',e=>{snapshot();state.blank=e.target.value;render();status('Concept blank color updated.')});
-$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}snapshot();const l=baseLayer('text',{text:limitText(text,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:380+state.layers.length*25});state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
+$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}const l=baseLayer('text',{text:limitText(text,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:Math.min(650,380+state.layers.length*25)});if(!canAddLayer(l))return;snapshot();state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
 $('font-size').addEventListener('change',e=>{$('font-size-display').textContent=e.target.value;const l=selected();if(l?.type==='text'){snapshot();l.fontSize=Number(e.target.value);render()}});
 $('layer-color').addEventListener('change',e=>{const l=selected();if(l?.type==='text'){snapshot();l.color=e.target.value;render()}});
 $('layer-angle').addEventListener('change',e=>{const l=selected();if(!l)return;snapshot();l.rotation=Number(e.target.value);render();status('Layer rotation adjusted.');});
 $('layer-scale').addEventListener('change',e=>{const l=selected();if(l?.type!=='image')return;snapshot();l.scale=Number(e.target.value)/100;render();status('Artwork scale adjusted.');});
-$('duplicate-layer').addEventListener('click',()=>{const l=selected();if(!l){status('Select a layer first.');return}snapshot();const copy=clone(l);copy.id=nextId();copy.x=Math.min(650,copy.x+25);copy.y=Math.min(650,copy.y+25);state.layers.push(copy);state.selected=copy.id;if(copy.type==='image'&&copy.data)loadArtwork(copy);render();status('Layer duplicated.')});
+$('duplicate-layer').addEventListener('click',()=>{const l=selected();if(!l){status('Select a layer first.');return}const copy=clone(l);copy.id=nextId();copy.x=Math.min(650,copy.x+25);copy.y=Math.min(650,copy.y+25);if(!canAddLayer(copy))return;snapshot();state.layers.push(copy);state.selected=copy.id;if(copy.type==='image'&&copy.data)loadArtwork(copy);render();status('Layer duplicated.')});
 $('remove-layer').addEventListener('click',()=>{if(!selected()){status('Select a layer first.');return}snapshot();imageCache.delete(state.selected);state.layers=state.layers.filter(l=>l.id!==state.selected);state.selected=state.layers.at(-1)?.id||null;render();status('Layer removed.')});
 $('undo').addEventListener('click',()=>{cancelPendingOperation();if(!past.length){status('No changes to undo.');return}future.push(clone(state));state=past.pop();hasReviewed=false;restoreImages();render();status('Undid the last change.')});
 $('redo').addEventListener('click',()=>{cancelPendingOperation();if(!future.length){status('No changes to redo.');return}past.push(clone(state));state=future.pop();hasReviewed=false;restoreImages();render();status('Redid the change.')});
@@ -127,7 +127,9 @@ $('artwork').addEventListener('change',async e=>{
   if(!operationCurrent(operation))return;
   await validateImageData(data);
   if(!operationCurrent(operation))return;
-  snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});
+  const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});
+  if(!canAddLayer(layer))return;
+  snapshot();
   state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();
   status('Artwork added locally; drag to position. Nothing has been uploaded.');
  }catch(_){if(operationCurrent(operation))status('Artwork could not be read.');}
@@ -167,6 +169,16 @@ function review(){if(waitForOperation())return;const problems=[];if(!state.layer
 $('review-design').addEventListener('click',review);
 function exportFile(name,blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),7000)}
 function safeDraft(){return {schema:'tj-design-concept-2026-10-v2',localOnly:true,manufacturingApproved:false,priceApproved:false,checkoutEnabled:false,product:state.product,surface:state.surface,blank:state.blank,layers:clone(state.layers),designs:allDesigns()}}
+// Use the portable-draft contract before changing state or undo history.
+function canAddLayer(layer){
+ if(state.layers.length>=32){status('This surface has reached its 32-layer limit. Remove a layer or choose another surface.');return false;}
+ try{
+  const draft=safeDraft();draft.layers.push(layer);
+  draft.designs[designKey(draft.product,draft.surface)]={blank:draft.blank,layers:draft.layers};
+  readDraft(JSON.stringify(draft,null,2));
+  return true;
+ }catch(_){status('This addition exceeds the portable design limits. Remove artwork or use a smaller image.');return false;}
+}
 function validLayers(layers){
  if(!Array.isArray(layers)||layers.length>32)return false;
  const ids=new Set();let imageBytes=0;
