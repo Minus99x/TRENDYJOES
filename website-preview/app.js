@@ -175,7 +175,11 @@ function canAddLayer(layer){
  try{
   const draft=safeDraft();draft.layers.push(layer);
   draft.designs[designKey(draft.product,draft.surface)]={blank:draft.blank,layers:draft.layers};
-  readDraft(JSON.stringify(draft,null,2));
+  // Every surface must remain exportable when it becomes the active surface.
+  for(const [key,design] of Object.entries(draft.designs)){
+   const [product,surface]=key.split(':');
+   readDraft(JSON.stringify({...draft,product:Number(product),surface,blank:design.blank,layers:design.layers},null,2));
+  }
   return true;
  }catch(_){status('This addition exceeds the portable design limits. Remove artwork or use a smaller image.');return false;}
 }
