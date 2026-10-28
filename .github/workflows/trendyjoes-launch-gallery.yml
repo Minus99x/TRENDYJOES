@@ -5,6 +5,9 @@ on:
       - dev/approved-storefront-preview-20261024
     paths:
       - 'website-preview/**'
+      - 'scripts/repair_stl_orientation.py'
+      - 'tests/test_stl_orientation.py'
+      - '.github/workflows/offline-studio-ci.yml'
       - '.github/workflows/trendyjoes-launch-gallery.yml'
   workflow_dispatch:
 permissions:
