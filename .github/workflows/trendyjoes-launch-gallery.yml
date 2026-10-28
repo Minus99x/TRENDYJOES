@@ -1,0 +1,31 @@
+name: TrendyJoes Launch Gallery Browser Gate
+on:
+  push:
+    branches:
+      - dev/approved-storefront-preview-20261024
+    paths:
+      - 'website-preview/**'
+      - '.github/workflows/trendyjoes-launch-gallery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-design-gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser tools
+        run: |
+          python -m pip install 'playwright==1.56.0' 'Pillow==11.3.0'
+          python -m playwright install --with-deps chromium
+      - name: Validate real design picker on desktop and mobile
+        run: python website-preview/verify_launch_catalog.py
+      - name: Validate original Studio acceptance
+        run: |
+          python website-preview/bundle.py
+          python website-preview/verify_preview.py
+          python website-preview/verify_20261024_advance.py
