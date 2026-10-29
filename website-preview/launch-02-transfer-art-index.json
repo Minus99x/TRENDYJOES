@@ -1,0 +1,598 @@
+{
+  "schema": "trendyjoes-launch02-transfer-catalog-v1",
+  "items": [
+    {
+      "sku": "T01",
+      "title": "GOBBLE THESE",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T01-gobble-these",
+      "files": [
+        "editable_svg/T01-gobble-these.svg",
+        "dtf_3600x4500/T01-gobble-these.png",
+        "uv_dtf_4x5_1200x1500/T01-gobble-these.png",
+        "uv_dtf_3x3_900x900/T01-gobble-these.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T02",
+      "title": "TALK TURKEY TO ME",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T02-talk-turkey-to-me",
+      "files": [
+        "editable_svg/T02-talk-turkey-to-me.svg",
+        "dtf_3600x4500/T02-talk-turkey-to-me.png",
+        "uv_dtf_4x5_1200x1500/T02-talk-turkey-to-me.png",
+        "uv_dtf_3x3_900x900/T02-talk-turkey-to-me.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T03",
+      "title": "THICK THIGHS MORE PIES",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T03-thick-thighs-more-pies",
+      "files": [
+        "editable_svg/T03-thick-thighs-more-pies.svg",
+        "dtf_3600x4500/T03-thick-thighs-more-pies.png",
+        "uv_dtf_4x5_1200x1500/T03-thick-thighs-more-pies.png",
+        "uv_dtf_3x3_900x900/T03-thick-thighs-more-pies.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T04",
+      "title": "FEAST MODE",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T04-feast-mode",
+      "files": [
+        "editable_svg/T04-feast-mode.svg",
+        "dtf_3600x4500/T04-feast-mode.png",
+        "uv_dtf_4x5_1200x1500/T04-feast-mode.png",
+        "uv_dtf_3x3_900x900/T04-feast-mode.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T05",
+      "title": "STUFFED & UNBOTHERED",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T05-stuffed-and-unbothered",
+      "files": [
+        "editable_svg/T05-stuffed-and-unbothered.svg",
+        "dtf_3600x4500/T05-stuffed-and-unbothered.png",
+        "uv_dtf_4x5_1200x1500/T05-stuffed-and-unbothered.png",
+        "uv_dtf_3x3_900x900/T05-stuffed-and-unbothered.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T06",
+      "title": "PIES BEFORE GUYS",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T06-pies-before-guys",
+      "files": [
+        "editable_svg/T06-pies-before-guys.svg",
+        "dtf_3600x4500/T06-pies-before-guys.png",
+        "uv_dtf_4x5_1200x1500/T06-pies-before-guys.png",
+        "uv_dtf_3x3_900x900/T06-pies-before-guys.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T07",
+      "title": "GOBBLE TIL YOU WOBBLE",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T07-gobble-til-you-wobble",
+      "files": [
+        "editable_svg/T07-gobble-til-you-wobble.svg",
+        "dtf_3600x4500/T07-gobble-til-you-wobble.png",
+        "uv_dtf_4x5_1200x1500/T07-gobble-til-you-wobble.png",
+        "uv_dtf_3x3_900x900/T07-gobble-til-you-wobble.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T08",
+      "title": "PASS THE PIE NOT THE DRAMA",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T08-pass-the-pie-not-the-drama",
+      "files": [
+        "editable_svg/T08-pass-the-pie-not-the-drama.svg",
+        "dtf_3600x4500/T08-pass-the-pie-not-the-drama.png",
+        "uv_dtf_4x5_1200x1500/T08-pass-the-pie-not-the-drama.png",
+        "uv_dtf_3x3_900x900/T08-pass-the-pie-not-the-drama.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T09",
+      "title": "THANKFUL FOR STRETCHY PANTS",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T09-thankful-for-stretchy-pants",
+      "files": [
+        "editable_svg/T09-thankful-for-stretchy-pants.svg",
+        "dtf_3600x4500/T09-thankful-for-stretchy-pants.png",
+        "uv_dtf_4x5_1200x1500/T09-thankful-for-stretchy-pants.png",
+        "uv_dtf_3x3_900x900/T09-thankful-for-stretchy-pants.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T10",
+      "title": "SWEET POTATO SOCIAL CLUB",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T10-sweet-potato-social-club",
+      "files": [
+        "editable_svg/T10-sweet-potato-social-club.svg",
+        "dtf_3600x4500/T10-sweet-potato-social-club.png",
+        "uv_dtf_4x5_1200x1500/T10-sweet-potato-social-club.png",
+        "uv_dtf_3x3_900x900/T10-sweet-potato-social-club.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T11",
+      "title": "OH MY GOURD",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T11-oh-my-gourd",
+      "files": [
+        "editable_svg/T11-oh-my-gourd.svg",
+        "dtf_3600x4500/T11-oh-my-gourd.png",
+        "uv_dtf_4x5_1200x1500/T11-oh-my-gourd.png",
+        "uv_dtf_3x3_900x900/T11-oh-my-gourd.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "T12",
+      "title": "TURKEY AND ATTITUDE",
+      "category": "Thanksgiving",
+      "artwork_prefix": "T12-turkey-and-attitude",
+      "files": [
+        "editable_svg/T12-turkey-and-attitude.svg",
+        "dtf_3600x4500/T12-turkey-and-attitude.png",
+        "uv_dtf_4x5_1200x1500/T12-turkey-and-attitude.png",
+        "uv_dtf_3x3_900x900/T12-turkey-and-attitude.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H01",
+      "title": "RESTING GIFT FACE",
+      "category": "Holiday",
+      "artwork_prefix": "H01-resting-gift-face",
+      "files": [
+        "editable_svg/H01-resting-gift-face.svg",
+        "dtf_3600x4500/H01-resting-gift-face.png",
+        "uv_dtf_4x5_1200x1500/H01-resting-gift-face.png",
+        "uv_dtf_3x3_900x900/H01-resting-gift-face.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H02",
+      "title": "FESTIVE BUT FERAL",
+      "category": "Holiday",
+      "artwork_prefix": "H02-festive-but-feral",
+      "files": [
+        "editable_svg/H02-festive-but-feral.svg",
+        "dtf_3600x4500/H02-festive-but-feral.png",
+        "uv_dtf_4x5_1200x1500/H02-festive-but-feral.png",
+        "uv_dtf_3x3_900x900/H02-festive-but-feral.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H03",
+      "title": "MERRY WHATEVER",
+      "category": "Holiday",
+      "artwork_prefix": "H03-merry-whatever",
+      "files": [
+        "editable_svg/H03-merry-whatever.svg",
+        "dtf_3600x4500/H03-merry-whatever.png",
+        "uv_dtf_4x5_1200x1500/H03-merry-whatever.png",
+        "uv_dtf_3x3_900x900/H03-merry-whatever.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H04",
+      "title": "DECK THE HALLS NOT MY PATIENCE",
+      "category": "Holiday",
+      "artwork_prefix": "H04-deck-the-halls-not-my-patience",
+      "files": [
+        "editable_svg/H04-deck-the-halls-not-my-patience.svg",
+        "dtf_3600x4500/H04-deck-the-halls-not-my-patience.png",
+        "uv_dtf_4x5_1200x1500/H04-deck-the-halls-not-my-patience.png",
+        "uv_dtf_3x3_900x900/H04-deck-the-halls-not-my-patience.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H05",
+      "title": "SILENTLY JUDGING YOUR TINSEL",
+      "category": "Holiday",
+      "artwork_prefix": "H05-silently-judging-your-tinsel",
+      "files": [
+        "editable_svg/H05-silently-judging-your-tinsel.svg",
+        "dtf_3600x4500/H05-silently-judging-your-tinsel.png",
+        "uv_dtf_4x5_1200x1500/H05-silently-judging-your-tinsel.png",
+        "uv_dtf_3x3_900x900/H05-silently-judging-your-tinsel.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H06",
+      "title": "JINGLE ALL THE DAMN WAY",
+      "category": "Holiday",
+      "artwork_prefix": "H06-jingle-all-the-damn-way",
+      "files": [
+        "editable_svg/H06-jingle-all-the-damn-way.svg",
+        "dtf_3600x4500/H06-jingle-all-the-damn-way.png",
+        "uv_dtf_4x5_1200x1500/H06-jingle-all-the-damn-way.png",
+        "uv_dtf_3x3_900x900/H06-jingle-all-the-damn-way.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H07",
+      "title": "NAUGHTY WITH GOOD TASTE",
+      "category": "Holiday",
+      "artwork_prefix": "H07-naughty-with-good-taste",
+      "files": [
+        "editable_svg/H07-naughty-with-good-taste.svg",
+        "dtf_3600x4500/H07-naughty-with-good-taste.png",
+        "uv_dtf_4x5_1200x1500/H07-naughty-with-good-taste.png",
+        "uv_dtf_3x3_900x900/H07-naughty-with-good-taste.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H08",
+      "title": "HO HO HOLD MY DRINK",
+      "category": "Holiday",
+      "artwork_prefix": "H08-ho-ho-hold-my-drink",
+      "files": [
+        "editable_svg/H08-ho-ho-hold-my-drink.svg",
+        "dtf_3600x4500/H08-ho-ho-hold-my-drink.png",
+        "uv_dtf_4x5_1200x1500/H08-ho-ho-hold-my-drink.png",
+        "uv_dtf_3x3_900x900/H08-ho-ho-hold-my-drink.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H09",
+      "title": "SLEIGH THE ATTITUDE",
+      "category": "Holiday",
+      "artwork_prefix": "H09-sleigh-the-attitude",
+      "files": [
+        "editable_svg/H09-sleigh-the-attitude.svg",
+        "dtf_3600x4500/H09-sleigh-the-attitude.png",
+        "uv_dtf_4x5_1200x1500/H09-sleigh-the-attitude.png",
+        "uv_dtf_3x3_900x900/H09-sleigh-the-attitude.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H10",
+      "title": "PEACE LOVE AND SIDE EYE",
+      "category": "Holiday",
+      "artwork_prefix": "H10-peace-love-and-side-eye",
+      "files": [
+        "editable_svg/H10-peace-love-and-side-eye.svg",
+        "dtf_3600x4500/H10-peace-love-and-side-eye.png",
+        "uv_dtf_4x5_1200x1500/H10-peace-love-and-side-eye.png",
+        "uv_dtf_3x3_900x900/H10-peace-love-and-side-eye.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H11",
+      "title": "MERRY AND MENACING",
+      "category": "Holiday",
+      "artwork_prefix": "H11-merry-and-menacing",
+      "files": [
+        "editable_svg/H11-merry-and-menacing.svg",
+        "dtf_3600x4500/H11-merry-and-menacing.png",
+        "uv_dtf_4x5_1200x1500/H11-merry-and-menacing.png",
+        "uv_dtf_3x3_900x900/H11-merry-and-menacing.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "H12",
+      "title": "I TRIED BEING NICE",
+      "category": "Holiday",
+      "artwork_prefix": "H12-i-tried-being-nice",
+      "files": [
+        "editable_svg/H12-i-tried-being-nice.svg",
+        "dtf_3600x4500/H12-i-tried-being-nice.png",
+        "uv_dtf_4x5_1200x1500/H12-i-tried-being-nice.png",
+        "uv_dtf_3x3_900x900/H12-i-tried-being-nice.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E01",
+      "title": "FUHQ",
+      "category": "Everyday",
+      "artwork_prefix": "E01-fuhq",
+      "files": [
+        "editable_svg/E01-fuhq.svg",
+        "dtf_3600x4500/E01-fuhq.png",
+        "uv_dtf_4x5_1200x1500/E01-fuhq.png",
+        "uv_dtf_3x3_900x900/E01-fuhq.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E02",
+      "title": "MILF & DILF",
+      "category": "Everyday",
+      "artwork_prefix": "E02-milf-and-dilf",
+      "files": [
+        "editable_svg/E02-milf-and-dilf.svg",
+        "dtf_3600x4500/E02-milf-and-dilf.png",
+        "uv_dtf_4x5_1200x1500/E02-milf-and-dilf.png",
+        "uv_dtf_3x3_900x900/E02-milf-and-dilf.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E03",
+      "title": "CUTE BUT FERAL",
+      "category": "Everyday",
+      "artwork_prefix": "E03-cute-but-feral",
+      "files": [
+        "editable_svg/E03-cute-but-feral.svg",
+        "dtf_3600x4500/E03-cute-but-feral.png",
+        "uv_dtf_4x5_1200x1500/E03-cute-but-feral.png",
+        "uv_dtf_3x3_900x900/E03-cute-but-feral.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E04",
+      "title": "NOT TODAY HEIFER",
+      "category": "Everyday",
+      "artwork_prefix": "E04-not-today-heifer",
+      "files": [
+        "editable_svg/E04-not-today-heifer.svg",
+        "dtf_3600x4500/E04-not-today-heifer.png",
+        "uv_dtf_4x5_1200x1500/E04-not-today-heifer.png",
+        "uv_dtf_3x3_900x900/E04-not-today-heifer.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E05",
+      "title": "MOOOOD",
+      "category": "Everyday",
+      "artwork_prefix": "E05-mooood",
+      "files": [
+        "editable_svg/E05-mooood.svg",
+        "dtf_3600x4500/E05-mooood.png",
+        "uv_dtf_4x5_1200x1500/E05-mooood.png",
+        "uv_dtf_3x3_900x900/E05-mooood.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E06",
+      "title": "CAFFEINE & CHAOS",
+      "category": "Everyday",
+      "artwork_prefix": "E06-caffeine-and-chaos",
+      "files": [
+        "editable_svg/E06-caffeine-and-chaos.svg",
+        "dtf_3600x4500/E06-caffeine-and-chaos.png",
+        "uv_dtf_4x5_1200x1500/E06-caffeine-and-chaos.png",
+        "uv_dtf_3x3_900x900/E06-caffeine-and-chaos.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E07",
+      "title": "HOT MESS EXPRESS",
+      "category": "Everyday",
+      "artwork_prefix": "E07-hot-mess-express",
+      "files": [
+        "editable_svg/E07-hot-mess-express.svg",
+        "dtf_3600x4500/E07-hot-mess-express.png",
+        "uv_dtf_4x5_1200x1500/E07-hot-mess-express.png",
+        "uv_dtf_3x3_900x900/E07-hot-mess-express.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E08",
+      "title": "CLASSY TRASHY SASSY",
+      "category": "Everyday",
+      "artwork_prefix": "E08-classy-trashy-sassy",
+      "files": [
+        "editable_svg/E08-classy-trashy-sassy.svg",
+        "dtf_3600x4500/E08-classy-trashy-sassy.png",
+        "uv_dtf_4x5_1200x1500/E08-classy-trashy-sassy.png",
+        "uv_dtf_3x3_900x900/E08-classy-trashy-sassy.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E09",
+      "title": "GOOD GIRLS BAD HABITS",
+      "category": "Everyday",
+      "artwork_prefix": "E09-good-girls-bad-habits",
+      "files": [
+        "editable_svg/E09-good-girls-bad-habits.svg",
+        "dtf_3600x4500/E09-good-girls-bad-habits.png",
+        "uv_dtf_4x5_1200x1500/E09-good-girls-bad-habits.png",
+        "uv_dtf_3x3_900x900/E09-good-girls-bad-habits.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E10",
+      "title": "SARCASM IS MY LOVE LANGUAGE",
+      "category": "Everyday",
+      "artwork_prefix": "E10-sarcasm-is-my-love-language",
+      "files": [
+        "editable_svg/E10-sarcasm-is-my-love-language.svg",
+        "dtf_3600x4500/E10-sarcasm-is-my-love-language.png",
+        "uv_dtf_4x5_1200x1500/E10-sarcasm-is-my-love-language.png",
+        "uv_dtf_3x3_900x900/E10-sarcasm-is-my-love-language.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E11",
+      "title": "MENTALLY AT THE CRAFT STORE",
+      "category": "Everyday",
+      "artwork_prefix": "E11-mentally-at-the-craft-store",
+      "files": [
+        "editable_svg/E11-mentally-at-the-craft-store.svg",
+        "dtf_3600x4500/E11-mentally-at-the-craft-store.png",
+        "uv_dtf_4x5_1200x1500/E11-mentally-at-the-craft-store.png",
+        "uv_dtf_3x3_900x900/E11-mentally-at-the-craft-store.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    },
+    {
+      "sku": "E12",
+      "title": "ZERO CLUCKS GIVEN",
+      "category": "Everyday",
+      "artwork_prefix": "E12-zero-clucks-given",
+      "files": [
+        "editable_svg/E12-zero-clucks-given.svg",
+        "dtf_3600x4500/E12-zero-clucks-given.png",
+        "uv_dtf_4x5_1200x1500/E12-zero-clucks-given.png",
+        "uv_dtf_3x3_900x900/E12-zero-clucks-given.png"
+      ],
+      "rights": "pending-review",
+      "print_test": "not-run",
+      "asset_presence": "owner-download-archive-only",
+      "checkout": "disabled"
+    }
+  ],
+  "private_trademark_review_only": [
+    {
+      "sku": "R01",
+      "title": "RESTING GRINCH FACE"
+    },
+    {
+      "sku": "R02",
+      "title": "I'M THE GRINCH BITCH"
+    }
+  ],
+  "asset_hosting": "NOT YET IN REPOSITORY OR SHOPIFY",
+  "owner_archives": [
+    "TrendyJoes_36_Standalone_DTF_Apparel_Art.zip",
+    "TrendyJoes_36_Standalone_UV_DTF_Decals.zip",
+    "TrendyJoes_Grinch_Phrase_Private_Review_Concepts.zip"
+  ],
+  "notes": "36 owner-downloadable vector-and-PNG graphic packages verified locally. This index documents references; it is not a live Shopify product catalog. No manufacturing, licensing, RIP, staging integration, or sales claim."
+}

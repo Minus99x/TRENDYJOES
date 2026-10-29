@@ -1,0 +1,191 @@
+{
+  "schema": "trendyjoes-launch01-2026-10",
+  "priority": "P1",
+  "status": "DRAFT — do not publish before file-delivery, price, license, supplier blanks and manufacturing verification",
+  "shopify": {
+    "shop": "gucgmp-bc.myshopify.com",
+    "stagingTheme": "gid://shopify/OnlineStoreTheme/155831271559",
+    "stagingSection": "sections/tj-design-launch-01.liquid",
+    "liveThemeUntouched": true
+  },
+  "assets": {
+    "apparelDesigns": 12,
+    "formats": [
+      "PNG transparent 3600x4500 300-DPI-metadata",
+      "SVG editable"
+    ],
+    "stlTokens": 2,
+    "stlUnits": "mm",
+    "digitalFilesAttached": false
+  },
+  "catalog": [
+    {
+      "sku": "F01",
+      "title": "Snack Support Club",
+      "category": "Funny",
+      "shopifyProductId": "gid://shopify/Product/8942498775175",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348778832007",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "F02",
+      "title": "Advanced Overthinking",
+      "category": "Funny",
+      "shopifyProductId": "gid://shopify/Product/8942498807943",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348778864775",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "F03",
+      "title": "Plant Gossip",
+      "category": "Funny",
+      "shopifyProductId": "gid://shopify/Product/8942498840711",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348778897543",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "F04",
+      "title": "Pretty Chaotic",
+      "category": "Funny",
+      "shopifyProductId": "gid://shopify/Product/8942498906247",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779126919",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "L01",
+      "title": "Favorite Plot Twist",
+      "category": "Love",
+      "shopifyProductId": "gid://shopify/Product/8942498971783",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779487367",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "L02",
+      "title": "Love Looks Good",
+      "category": "Love",
+      "shopifyProductId": "gid://shopify/Product/8942499004551",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779520135",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "L03",
+      "title": "Soft Hearts Loud Color",
+      "category": "Love",
+      "shopifyProductId": "gid://shopify/Product/8942499070087",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779749511",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "L04",
+      "title": "More Love Less Laundry",
+      "category": "Love",
+      "shopifyProductId": "gid://shopify/Product/8942499102855",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779782279",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "S01",
+      "title": "Bloom Sideways",
+      "category": "Sweet",
+      "shopifyProductId": "gid://shopify/Product/8942499168391",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348779847815",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "S02",
+      "title": "Big Little Magic",
+      "category": "Sweet",
+      "shopifyProductId": "gid://shopify/Product/8942499266695",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348780044423",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "C01",
+      "title": "Kindness Confetti",
+      "category": "Colorful",
+      "shopifyProductId": "gid://shopify/Product/8942499299463",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348780109959",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    },
+    {
+      "sku": "C02",
+      "title": "Color Outside Ordinary",
+      "category": "Colorful",
+      "shopifyProductId": "gid://shopify/Product/8942499364999",
+      "shopifyVariantId": "gid://shopify/ProductVariant/46348780142727",
+      "status": "DRAFT",
+      "price": "UNSET",
+      "fileDelivery": "PENDING",
+      "artworkProof": "PENDING"
+    }
+  ],
+  "bundle": {
+    "shopifyProductId": "gid://shopify/Product/8942481703047",
+    "shopifyVariantId": "gid://shopify/ProductVariant/46348748062855",
+    "title": "12 SVG + PNG apparel graphics",
+    "status": "DRAFT"
+  },
+  "stls": [
+    {
+      "title": "LOVE Desk Token",
+      "shopifyProductId": "gid://shopify/Product/8942481768583",
+      "variantId": "gid://shopify/ProductVariant/46348748292231",
+      "filename": "love-heart-desk-token.stl",
+      "previewOnly": true,
+      "physicalPrintProof": false
+    },
+    {
+      "title": "BLOOM Desk Token",
+      "shopifyProductId": "gid://shopify/Product/8942481866887",
+      "variantId": "gid://shopify/ProductVariant/46348748324999",
+      "filename": "bloom-flower-desk-token.stl",
+      "previewOnly": true,
+      "physicalPrintProof": false
+    }
+  ],
+  "gates": [
+    "Attach actual digital files through the store's Digital Products app",
+    "Set merchant-approved nonzero prices",
+    "Finalize customer artwork license and review phrase/trademark clearance",
+    "Configure true product variants, blanks, stock, sizes, shipping and physical proof",
+    "Prove DTG/DTF garment workflow when the xTool printer arrives",
+    "Test Shopify draft purchase/delivery in supported test mode before publication"
+  ],
+  "receipts": {
+    "browserCI": "https://github.com/Minus99x/TRENDYJOES/actions/runs/40757971086",
+    "stagingPreview": "https://gucgmp-bc.myshopify.com/?preview_theme_id=155831271559"
+  }
+}
