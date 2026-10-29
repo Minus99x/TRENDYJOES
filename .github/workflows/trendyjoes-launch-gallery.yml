@@ -31,6 +31,8 @@ jobs:
         run: python website-preview/verify_launch_catalog.py
       - name: Validate real streetwear mode on desktop and mobile
         run: python website-preview/verify_streetwear_mode.py
+      - name: Verify alternate streetwear source front/back customization
+        run: python website-preview/verify_streetwear_source.py
       - name: Validate original Studio acceptance
         run: |
           python website-preview/bundle.py
