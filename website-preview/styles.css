@@ -24,3 +24,16 @@
 .tj-design-apply:hover{background:#532025}
 @media(max-width:850px){.tj-design-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.tj-design-library{padding:22px 12px}.tj-design-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tj-design-copy{padding:9px}.tj-design-copy strong{font-size:13px}.tj-design-header h2{font-size:29px}.tj-design-apply{font-size:11px}}
+
+/* Opt-in masculine transfer entry. The oxblood/slate base theme remains unchanged. */
+.tj-streetwear-entry{margin:22px auto 30px;padding:clamp(24px,4vw,48px);background:radial-gradient(ellipse at top right,#394347 0%,#151c20 65%);border:2px solid #4b5355;color:#eee2d0;box-shadow:inset 0 0 0 1px #101719}
+.tj-streetwear-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tj-streetwear-entry .eyebrow{color:#d77c54;margin:0}
+.tj-streetwear-edition{font:700 12px system-ui,sans-serif;letter-spacing:2px;color:#b5c3c0}
+.tj-streetwear-entry h2{font:900 clamp(36px,6vw,76px)/.95 Impact,'Arial Narrow',sans-serif;letter-spacing:1px;margin:20px 0;color:#f0e8d8}
+.tj-streetwear-entry h2 em{font-style:normal;color:#df835b}
+.tj-streetwear-entry>p{max-width:800px;line-height:1.7;color:#cbd1cd}
+.tj-streetwear-enter{display:inline-flex;gap:22px;justify-content:space-between;align-items:center;padding:15px 22px;background:#be6745;color:#161b1e;font:900 16px system-ui,sans-serif;letter-spacing:.4px;text-decoration:none;margin:15px 0}
+.tj-streetwear-enter:hover,.tj-streetwear-enter:focus-visible{background:#ed9870;color:#161b1e}
+.tj-streetwear-entry .tj-streetwear-disclaimer{font-size:12px;color:#9aada9;margin:9px 0 0}
+@media(max-width:520px){.tj-streetwear-entry{padding:20px 14px}.tj-streetwear-entry h2{font-size:41px}.tj-streetwear-enter{font-size:12px;width:100%}}
