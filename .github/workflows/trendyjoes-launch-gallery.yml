@@ -29,7 +29,7 @@ jobs:
         run: python website-preview/verify_transfer_catalog.py
       - name: Validate real design picker on desktop and mobile
         run: python website-preview/verify_launch_catalog.py
-      - name: Validate original Studio acceptance
+      - name: Validate real streetwear mode on desktop and mobile\n        run: python website-preview/verify_streetwear_mode.py\n      - name: Validate original Studio acceptance
         run: |
           python website-preview/bundle.py
           python website-preview/verify_preview.py
