@@ -47,6 +47,7 @@ const clone=s=>JSON.parse(JSON.stringify(s));
 function cancelPendingOperation(){
  if(!pendingOperation)return;
  $(pendingOperation.field).setAttribute('aria-busy','false');
+ if(pendingOperation.onCancel)pendingOperation.onCancel();
  pendingOperation=null;$('cancel-load').disabled=true;
  $('design-report').textContent='Review your current design before export.';
 }
@@ -108,12 +109,12 @@ function selectProduct(i){if(!Number.isInteger(i)||i<0||i>=products.length)retur
 $('product').addEventListener('change',e=>selectProduct(Number(e.target.value)));
 $('surface').addEventListener('change',e=>{const target=e.target.value;if(!['Front','Back','Side'].includes(target))return;snapshot();rememberCanvas();openCanvas(state.product,target);status(`${target} design opened; other surfaces remain saved in this concept.`)});
 $('blank').addEventListener('change',e=>{snapshot();state.blank=e.target.value;render();status('Concept blank color updated.')});
-$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}snapshot();const l=baseLayer('text',{text:limitText(text,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:380+state.layers.length*25});state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
+$('add-text').addEventListener('click',()=>{const text=$('text-entry').value.trim();if(!text){status('Enter wording before adding a text layer.');return}const l=baseLayer('text',{text:limitText(text,120),fontSize:Number($('font-size').value),color:$('layer-color').value,y:Math.min(650,380+state.layers.length*25)});if(!canAddLayer(l))return;snapshot();state.layers.push(l);state.selected=l.id;render();status('Text layer added. Drag it on the canvas to reposition.')});
 $('font-size').addEventListener('change',e=>{$('font-size-display').textContent=e.target.value;const l=selected();if(l?.type==='text'){snapshot();l.fontSize=Number(e.target.value);render()}});
 $('layer-color').addEventListener('change',e=>{const l=selected();if(l?.type==='text'){snapshot();l.color=e.target.value;render()}});
 $('layer-angle').addEventListener('change',e=>{const l=selected();if(!l)return;snapshot();l.rotation=Number(e.target.value);render();status('Layer rotation adjusted.');});
 $('layer-scale').addEventListener('change',e=>{const l=selected();if(l?.type!=='image')return;snapshot();l.scale=Number(e.target.value)/100;render();status('Artwork scale adjusted.');});
-$('duplicate-layer').addEventListener('click',()=>{const l=selected();if(!l){status('Select a layer first.');return}snapshot();const copy=clone(l);copy.id=nextId();copy.x=Math.min(650,copy.x+25);copy.y=Math.min(650,copy.y+25);state.layers.push(copy);state.selected=copy.id;if(copy.type==='image'&&copy.data)loadArtwork(copy);render();status('Layer duplicated.')});
+$('duplicate-layer').addEventListener('click',()=>{const l=selected();if(!l){status('Select a layer first.');return}const copy=clone(l);copy.id=nextId();copy.x=Math.min(650,copy.x+25);copy.y=Math.min(650,copy.y+25);if(!canAddLayer(copy))return;snapshot();state.layers.push(copy);state.selected=copy.id;if(copy.type==='image'&&copy.data)loadArtwork(copy);render();status('Layer duplicated.')});
 $('remove-layer').addEventListener('click',()=>{if(!selected()){status('Select a layer first.');return}snapshot();imageCache.delete(state.selected);state.layers=state.layers.filter(l=>l.id!==state.selected);state.selected=state.layers.at(-1)?.id||null;render();status('Layer removed.')});
 $('undo').addEventListener('click',()=>{cancelPendingOperation();if(!past.length){status('No changes to undo.');return}future.push(clone(state));state=past.pop();hasReviewed=false;restoreImages();render();status('Undid the last change.')});
 $('redo').addEventListener('click',()=>{cancelPendingOperation();if(!future.length){status('No changes to redo.');return}past.push(clone(state));state=future.pop();hasReviewed=false;restoreImages();render();status('Redid the change.')});
@@ -127,7 +128,9 @@ $('artwork').addEventListener('change',async e=>{
   if(!operationCurrent(operation))return;
   await validateImageData(data);
   if(!operationCurrent(operation))return;
-  snapshot();const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});
+  const layer=baseLayer('image',{data,filename:file.name.slice(0,70),y:415});
+  if(!canAddLayer(layer))return;
+  snapshot();
   state.layers.push(layer);state.selected=layer.id;loadArtwork(layer);render();
   status('Artwork added locally; drag to position. Nothing has been uploaded.');
  }catch(_){if(operationCurrent(operation))status('Artwork could not be read.');}
@@ -167,6 +170,20 @@ function review(){if(waitForOperation())return;const problems=[];if(!state.layer
 $('review-design').addEventListener('click',review);
 function exportFile(name,blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),7000)}
 function safeDraft(){return {schema:'tj-design-concept-2026-10-v2',localOnly:true,manufacturingApproved:false,priceApproved:false,checkoutEnabled:false,product:state.product,surface:state.surface,blank:state.blank,layers:clone(state.layers),designs:allDesigns()}}
+// Use the portable-draft contract before changing state or undo history.
+function canAddLayer(layer){
+ if(state.layers.length>=32){status('This surface has reached its 32-layer limit. Remove a layer or choose another surface.');return false;}
+ try{
+  const draft=safeDraft();draft.layers.push(layer);
+  draft.designs[designKey(draft.product,draft.surface)]={blank:draft.blank,layers:draft.layers};
+  // Every surface must remain exportable when it becomes the active surface.
+  for(const [key,design] of Object.entries(draft.designs)){
+   const [product,surface]=key.split(':');
+   readDraft(JSON.stringify({...draft,product:Number(product),surface,blank:design.blank,layers:design.layers},null,2));
+  }
+  return true;
+ }catch(_){status('This addition exceeds the portable design limits. Remove artwork or use a smaller image.');return false;}
+}
 function validLayers(layers){
  if(!Array.isArray(layers)||layers.length>32)return false;
  const ids=new Set();let imageBytes=0;
@@ -320,28 +337,30 @@ function tjDesignSVG(d){
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">'+tjShape(d[5],c)+t+'<path d="M330 1060Q600 1110 870 1060" fill="none" stroke="'+c[0]+'" stroke-width="14" stroke-linecap="round"/><circle cx="600" cy="1128" r="14" fill="'+c[1]+'"/></svg>';
 }
 function tjPreviewDesign(d,button){
- const product=state.product,surface=state.surface;
+ const operation=beginOperation(button.id);
+ operation.onCancel=()=>{button.disabled=false;button.textContent='Try on this product';};
  button.disabled=true;button.textContent='Preparing preview…';
  const source='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tjDesignSVG(d));
  const image=new Image();
  image.onload=()=>{
   try{
-   if(state.product!==product||state.surface!==surface){status('Product or surface changed; design selection was not applied.');return;}
+   if(!operationCurrent(operation))return;
    const off=document.createElement('canvas');off.width=800;off.height=1000;
    const brush=off.getContext('2d');if(!brush)throw Error('2D preview unavailable');
    brush.drawImage(image,0,0,800,1000);
    const data=off.toDataURL('image/png');
    if(data.length>6000000)throw Error('Preview asset exceeds local artwork limit');
-   snapshot();
    const l=baseLayer('image',{data,filename:d[0]+' — '+d[1]+'.png',x:400,y:410,scale:1});
+   if(!canAddLayer(l))return;
+   snapshot();
    state.layers.push(l);state.selected=l.id;
    loadArtwork(l);render();
    status(d[1]+' added to the '+state.surface.toLowerCase()+' of '+products[state.product].display+'. Concept only; no order placed.');
    $('design-canvas').scrollIntoView({block:'center',behavior:'smooth'});
-  }catch(_){status('This browser could not prepare that design. Your current design remains unchanged.');}
-  finally{button.disabled=false;button.textContent='Try on this product';}
+  }catch(_){if(operationCurrent(operation))status('This browser could not prepare that design. Your current design remains unchanged.');}
+  finally{finishOperation(operation);}
  };
- image.onerror=()=>{button.disabled=false;button.textContent='Try on this product';status('Artwork preview unavailable; current design unchanged.');};
+ image.onerror=()=>{if(operationCurrent(operation))status('Artwork preview unavailable; current design unchanged.');finishOperation(operation);};
  image.src=source;
 }
 function tjMountCatalog(){
@@ -354,7 +373,7 @@ function tjMountCatalog(){
   const category=document.createElement('small');category.textContent=d[2]+' · '+d[0];
   const heading=document.createElement('strong');heading.textContent=d[1];
   const desc=document.createElement('p');desc.textContent=d[3].join(' · ');
-  const action=document.createElement('button');action.type='button';action.className='tj-design-apply';
+  const action=document.createElement('button');action.type='button';action.className='tj-design-apply';action.id='tj-design-'+d[0];
   action.textContent='Try on this product';action.setAttribute('aria-label','Preview '+d[1]+' on the currently selected product');
   action.addEventListener('click',()=>tjPreviewDesign(d,action));
   body.append(category,heading,desc,action);item.append(picture,body);grid.append(item);
