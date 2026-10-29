@@ -17,6 +17,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/trendyjoes-self-heal.yml'
+      - '.github/scripts/trendyjoes_self_heal.py'
+      - '.github/tests/test_trendyjoes_self_heal.py'
 
 permissions:
   actions: write

@@ -46,7 +46,15 @@ def hourly_action(runs, now):
     return 'dispatch'
 
 
-def github(method, path, body=None):
+class SafeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is not None:
+            redirected.remove_header('Authorization')
+        return redirected
+
+
+def github(method, path, body=None, raw=False):
     token = os.environ['GH_TOKEN']
     repo = os.environ['GITHUB_REPOSITORY']
     if '/' not in repo:
@@ -60,8 +68,12 @@ def github(method, path, body=None):
         'User-Agent': 'TrendyJoes-GitHub-Native-Recovery',
         **({'Content-Type': 'application/json'} if data is not None else {})
     })
-    with urllib.request.urlopen(req, timeout=18) as response:
-        payload = response.read()
+    with urllib.request.build_opener(SafeRedirect()).open(req, timeout=18) as response:
+        payload = response.read(4_000_001)
+        if len(payload) > 4_000_000:
+            raise RuntimeError('GitHub response exceeds observer read limit')
+        if raw:
+            return payload.decode('utf-8', errors='replace')
         return json.loads(payload) if payload else {}
 
 
@@ -73,11 +85,36 @@ def note(message):
             f.write(message + '\n\n')
 
 
-def retry(run_id, expected_attempt):
+def quota_blocked(run):
+    """Only inspect failed generation jobs from this attested run attempt."""
+    jobs = github('GET', f'actions/runs/{int(run["id"])}/attempts/{int(run["run_attempt"])}/jobs?per_page=100').get('jobs', [])
+    for job in jobs:
+        if job.get('conclusion') != 'failure':
+            continue
+        if not any(step.get('conclusion') == 'failure' and
+                   step.get('name') == 'Implement and test next unmet functional Studio objective'
+                   for step in job.get('steps', [])):
+            continue
+        log = github('GET', f'actions/jobs/{int(job["id"])}/logs', raw=True)
+        if any(line.rstrip().endswith('You have exceeded your monthly quota') or
+               'You have exceeded your monthly quota (Request ID:' in line
+               for line in log.splitlines()):
+            return True
+    return False
+
+
+def retry(run_id, expected_attempt, allow_retry=True):
     # Reread actual run to avoid duplicate recoveries when webhook was delayed.
     run = github('GET', f'actions/runs/{run_id}')
     if int(run.get('run_attempt', 0)) != expected_attempt:
         note(f'Skip race: run {run_id} moved to attempt {run.get("run_attempt")}')
+        return
+    trusted = (run.get('repository', {}).get('full_name', '').lower() == os.environ['GITHUB_REPOSITORY'].lower()
+               and run.get('name') == WORKFLOW_NAME and run.get('head_branch') == BRANCH)
+    if not trusted:
+        raise RuntimeError('Untrusted run identity; recovery refused')
+    if run.get('status') == 'completed' and run.get('conclusion') == 'failure' and quota_blocked(run):
+        note(f'::warning::Engineering run {run_id} is BLOCKED by Copilot monthly quota. No immediate retry can restore capacity. No code delivery is claimed; the failed worker remains visible. Scheduled opportunities remain enabled.')
         return
     if not eligible_for_retry(run, os.environ['GITHUB_REPOSITORY']):
         if run.get('conclusion') == 'success':
@@ -85,9 +122,12 @@ def retry(run_id, expected_attempt):
         elif run.get('status') != 'completed':
             note(f'Run {run_id} still active; no duplicate retry.')
         elif int(run.get('run_attempt', 0)) >= MAX_ATTEMPTS:
-            raise RuntimeError(f'Run {run_id} failed after {MAX_ATTEMPTS} attempts; explicit investigation required.')
+            note(f'::warning::Engineering run {run_id} remains FAILED after {MAX_ATTEMPTS} attempts; retry limit reached. Investigation required; observer completed without another retry.')
         else:
             note(f'Run {run_id} not eligible for automated retry; no action.')
+        return
+    if not allow_retry:
+        note(f'Run {run_id} is retryable; push audit does not authorize a retry.')
         return
     github('POST', f'actions/runs/{run_id}/rerun-failed-jobs', {})
     note(f'GitHub accepted bounded failed-job retry for {run_id}: attempt {expected_attempt + 1}/{MAX_ATTEMPTS}.')
@@ -113,7 +153,7 @@ def recovery():
         else:
             note(f'Observed non-retryable run conclusion: {run.get("conclusion")}.')
         return
-    if event in {'schedule', 'workflow_dispatch'}:
+    if event in {'schedule', 'workflow_dispatch', 'push'}:
         now = dt.datetime.now(UTC)
         if event == 'schedule' and now.minute < GRACE_MINUTE:
             note(f'Observer fired early at {now.isoformat()}; leaving scheduled launcher undisturbed.')
@@ -125,16 +165,13 @@ def recovery():
         if action == 'dispatch':
             github('POST', f'actions/workflows/{WORKFLOW_FILE}/dispatches', {'ref': BRANCH})
             note('Missing hourly invocation: GitHub accepted explicit workflow_dispatch fallback.')
-        elif action == 'observed':
+        elif action in {'observed', 'manual_audit'}:
             # workflow_run event is preferred; cron catches a dropped completion webhook.
             target = now.replace(minute=5, second=0, microsecond=0)
-            latest = max((r for r in runs if iso_time(r['created_at']) >= target),
+            latest = max((r for r in runs if action == 'manual_audit' or iso_time(r['created_at']) >= target),
                          key=lambda r: iso_time(r['created_at']), default=None)
             if latest and latest.get('conclusion') in ('failure', 'timed_out'):
-                retry(int(latest['id']), int(latest.get('run_attempt', 0)))
-        return
-    if event == 'push':
-        note('Recovery configuration verified on trusted main; no retry or dispatch for bootstrap push.')
+                retry(int(latest['id']), int(latest.get('run_attempt', 0)), allow_retry=event != 'push')
         return
     note(f'Event {event} does not authorize recovery action.')
 
